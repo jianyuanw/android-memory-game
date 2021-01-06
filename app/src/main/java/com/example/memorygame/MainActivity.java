@@ -4,7 +4,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.content.AsyncQueryHandler;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -12,6 +11,7 @@ import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.webkit.URLUtil;
+import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -24,11 +24,8 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
-import java.util.stream.Collectors;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -39,6 +36,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     Thread imageProcess = null;
     boolean imageReady = false;
     Handler mHandler = new Handler();
+    private TextView mTextMessage;
+    private Button btn1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,12 +53,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         textView = findViewById(R.id.textView);
 
+        findViewById(R.id.btn1).setOnClickListener(this);
         findViewById(R.id.fetchButton).setOnClickListener(this);
 
     }
 
+
+
     @Override
     public void onClick(View v) {
+        Intent intent = null;
+        switch (v.getId()){
+            case R.id.btn1:
+               Intent i= new Intent(MainActivity.this, GameActivity.class);
+               startActivity(i);
+                //break;
+        }
         if (v.getId() == R.id.fetchButton) {
             // TODO: Scrape website and populate GridView
             TextInputEditText input = findViewById(R.id.textInputEditText);
@@ -72,7 +81,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 // new LoadImagesLinksTask(this).execute(input.getText().toString());
             }
 
-            // Starts game activity
+            // Starts GameActivity activity
             //Intent intent = new Intent(getApplicationContext(), GameActivity.class);
             //startActivity(intent);
         }
