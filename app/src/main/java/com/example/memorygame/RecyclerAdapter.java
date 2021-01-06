@@ -8,25 +8,46 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHolder> {
     // Responsible for displaying items in RecyclerView
     // Creates rows and maps items in list to rows
     ArrayList<String> urls;
     Context context;
+    HashMap<Integer, String> selected;
+    final private ListItemClickListener onClickListener;
 
     public RecyclerAdapter(Context context) {
         this.context = context;
         urls = new ArrayList<>();
+        selected = new HashMap<>();
+        this.onClickListener = (ListItemClickListener) context;
     }
 
-    public void setUrls(ArrayList<String> urls) {
-        this.urls = urls;
+    public void addUrl(String url) {
+        urls.add(url);
+        this.notifyItemChanged(urls.size() - 1);
+    }
+
+    public void clearUrls() {
+        urls.clear();
+        this.notifyDataSetChanged();
+    }
+
+    public int countUrls() {
+        return urls.size();
+    }
+
+    public ArrayList<String> getSelectedUrls() {
+        return new ArrayList<>(selected.values());
     }
 
     @NonNull
@@ -40,8 +61,17 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        Glide.with(context).load(urls.get(position)).into(holder.imageView);
-        // holder.imageView.setImageResource(arr[position]);
+        ImageView currentImage = holder.imageView;
+
+        Glide.with(context).load(urls.get(position)).into(currentImage);
+
+        currentImage.setTag(urls.get(position));
+
+        if (selected.containsKey(position)) {
+            currentImage.setBackground(ContextCompat.getDrawable(context, R.drawable.green_border));
+        } else {
+            currentImage.setBackground(null);
+        }
     }
 
     @Override
@@ -50,7 +80,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
         return urls.size();
     }
 
-    class ViewHolder extends RecyclerView.ViewHolder {
+    class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
         ImageView imageView;
 
@@ -58,6 +88,19 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
             super(itemView);
 
             imageView = itemView.findViewById(R.id.imageView);
+
+            itemView.setOnClickListener(this);
+        }
+
+        @Override
+        public void onClick(View v) {
+            int position = getAdapterPosition();
+            if (selected.containsKey(position)) {
+                selected.remove(position);
+            } else {
+                selected.put(position, (String) imageView.getTag());
+            }
+            onClickListener.onListItemClick(position);
         }
     }
 }

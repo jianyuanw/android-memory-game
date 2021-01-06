@@ -1,9 +1,11 @@
 package com.example.memorygame;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.app.Activity;
 import android.content.AsyncQueryHandler;
 import android.content.Intent;
 import android.os.AsyncTask;
@@ -11,7 +13,11 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.webkit.URLUtil;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -30,15 +36,18 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, ListItemClickListener {
 
     RecyclerView recyclerView;
     RecyclerAdapter recyclerAdapter;
     ProgressBar progressBar;
     TextView textView;
     Thread imageProcess = null;
+    Button startButton;
+    Button fetchButton;
     boolean imageReady = false;
     Handler mHandler = new Handler();
+    TextInputEditText input;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,21 +61,44 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         progressBar = findViewById(R.id.progressBar);
 
+        input = findViewById(R.id.textInputEditText);
+
         textView = findViewById(R.id.textView);
 
-        findViewById(R.id.fetchButton).setOnClickListener(this);
+        fetchButton = findViewById(R.id.fetchButton);
+        fetchButton.setOnClickListener(this);
 
+        startButton = findViewById(R.id.startButton);
+        startButton.setOnClickListener(this);
+
+    }
+
+    public void hideKeyboard(Activity activity) {
+        InputMethodManager imm = (InputMethodManager) activity.getSystemService(Activity.INPUT_METHOD_SERVICE);
+        View view = activity.getCurrentFocus();
+        if (view == null) {
+            view = new View(activity);
+        }
+        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
 
     @Override
     public void onClick(View v) {
-        if (v.getId() == R.id.fetchButton) {
+        int buttonId = v.getId();
+
+        if (buttonId == R.id.fetchButton) {
             // TODO: Scrape website and populate GridView
-            TextInputEditText input = findViewById(R.id.textInputEditText);
+            hideKeyboard(this);
             if (input.getText() != null) {
                 if (imageProcess != null) {
                     imageProcess.interrupt();
+                    try {
+                        imageProcess.join();
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
                 }
+
                 imageProcess = new Thread(new LoadImagesThread(input.getText().toString()));
                 imageProcess.start();
                 // new LoadImagesLinksTask(this).execute(input.getText().toString());
@@ -75,6 +107,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             // Starts game activity
             //Intent intent = new Intent(getApplicationContext(), GameActivity.class);
             //startActivity(intent);
+        } else if (buttonId == R.id.startButton) {
+            // TODO: Start button implementation
+        }
+    }
+
+    @Override
+    public void onListItemClick(int position) {
+        ImageView imageView = recyclerView.findViewHolderForAdapterPosition(position).itemView.findViewById(R.id.imageView);
+        if (imageView.getBackground() == null) {
+            imageView.setBackground(ContextCompat.getDrawable(this, R.drawable.green_border));
+        } else {
+            imageView.setBackground(null);
+        }
+
+        if (recyclerAdapter.getSelectedUrls().size() == 6) {
+            startButton.setEnabled(true);
+        } else if (startButton.isEnabled()) {
+            startButton.setEnabled(false);
         }
     }
 
@@ -88,67 +138,73 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
         @Override
         public void run() {
-            if (!URLUtil.isValidUrl(url)) {
-                mHandler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        Toast.makeText(getApplicationContext(), "Invalid URL, please try again.", Toast.LENGTH_SHORT).show();
-                    }
-                });
-                return;
-            }
-            startUI();
-            if (url.endsWith("/")) {
-                url = url.substring(0, url.length() - 1);
-            }
             try {
+                if (!URLUtil.isValidUrl(url)) {
+                    mHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(getApplicationContext(), "Invalid URL, please try again.", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                    return;
+                }
+
+                startUI();
+                if (url.endsWith("/")) {
+                    url = url.substring(0, url.length() - 1);
+                }
                 Document doc = Jsoup.connect(url).get();
                 images = doc.select("img[src~=(?i).(gif|png|jpe?g)]");
                 progressBar.setMax(images.size());
                 for (int i = 0; i < images.size(); i++) {
-                    Thread.sleep(150);
+                    // NOTE: Slight sleep to ensure sequential loading is working, consider removing in final
+                    Thread.sleep(100);
                     if (Thread.interrupted()) {
                         closeThread(false);
                     }
                     Element e = images.get(i);
-                    updateUI(i + 1);
+
                     String sourceAttribute = e.attr("src");
                     if (!sourceAttribute.startsWith("http")) {
-                        imageLinks.add(url + sourceAttribute);
-                    } else {
-                        imageLinks.add(sourceAttribute);
+                        sourceAttribute = url + sourceAttribute;
                     }
-                    Log.e("TESTING", sourceAttribute);
-                    recyclerAdapter.setUrls(imageLinks);
+                    updateUI(i + 1, sourceAttribute);
+
+                    Log.e("LOADIMAGE", sourceAttribute);
+
+                    closeThread(true);
                 }
-            } catch (IOException | InterruptedException e) {
-                e.printStackTrace();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
                 closeThread(false);
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
             }
-            closeThread(true);
+
         }
 
         private void startUI() {
             mHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    recyclerAdapter.setUrls(imageLinks);
-                    recyclerAdapter.notifyDataSetChanged();
+                    recyclerView.getRecycledViewPool().clear();
+                    recyclerAdapter.clearUrls();
                     progressBar.setProgress(0);
                     progressBar.setVisibility(View.VISIBLE);
                     textView.setText("Starting to process images..");
                     textView.setVisibility(View.VISIBLE);
+                    startButton.setVisibility(View.INVISIBLE);
                 }
             });
         }
 
-        private void updateUI(int progress) {
+        private void updateUI(int progress, String url) {
             mHandler.post(new Runnable() {
                 @Override
                 public void run() {
                     progressBar.setProgress(progress);
                     textView.setText(String.format(Locale.ENGLISH, "Processing img element %d of %d...", progress, images.size()));
-                    recyclerAdapter.notifyItemChanged(progress - 1);
+                    recyclerAdapter.addUrl(url);
                 }
             });
 
@@ -160,8 +216,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 public void run() {
                     if (success) {
                         Toast.makeText(getApplicationContext(), "Images processed!", Toast.LENGTH_SHORT).show();
+                        startButton.setVisibility(View.VISIBLE);
                         imageReady = true;
                     } else {
+                        recyclerAdapter.clearUrls();
                         Toast.makeText(getApplicationContext(), "Image loading failed!", Toast.LENGTH_SHORT).show();
                         imageReady = false;
                     }
@@ -173,7 +231,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    public class LoadImagesLinksTask extends AsyncTask<String, Integer, Void> {
+    /*public class LoadImagesLinksTask extends AsyncTask<String, Integer, Void> {
         private final ArrayList<String> imageLinks = new ArrayList<>();
         private int size;
 
@@ -199,12 +257,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             imageLinks.add(sourceAttribute);
                         }
                         Log.e("TESTING", sourceAttribute);
-                        recyclerAdapter.setUrls(imageLinks);
+
                         updateUI(i);
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
-                    recyclerAdapter.setUrls(imageLinks);
+
                 }
             }
 
@@ -218,7 +276,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            recyclerAdapter.setUrls(imageLinks);
+
             textView.setText("");
             progressBar.setProgress(0);
         }
@@ -244,5 +302,5 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
             });
         }
-    }
+    }*/
 }
