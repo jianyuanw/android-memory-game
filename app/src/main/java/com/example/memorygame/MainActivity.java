@@ -6,10 +6,9 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.Activity;
-import android.content.AsyncQueryHandler;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.util.Log;
 import android.view.View;
@@ -17,7 +16,6 @@ import android.view.inputmethod.InputMethodManager;
 import android.webkit.URLUtil;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -29,12 +27,15 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
-import java.util.stream.Collectors;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, ListItemClickListener {
 
@@ -46,6 +47,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     Button startButton;
     Button fetchButton;
     boolean imageReady = false;
+    boolean imageDownloaded = false;
     Handler mHandler = new Handler();
     TextInputEditText input;
 
@@ -71,6 +73,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         startButton = findViewById(R.id.startButton);
         startButton.setOnClickListener(this);
 
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        recyclerAdapter.clearUrls();
+        progressBar.setVisibility(View.INVISIBLE);
+        textView.setVisibility(View.INVISIBLE);
+        startButton.setVisibility(View.INVISIBLE);
+        startButton.setEnabled(false);
     }
 
     public void hideKeyboard(Activity activity) {
@@ -99,16 +111,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     }
                 }
 
-                imageProcess = new Thread(new LoadImagesThread(input.getText().toString()));
+                imageProcess = new Thread(new LoadImagesTask(input.getText().toString()));
                 imageProcess.start();
-                // new LoadImagesLinksTask(this).execute(input.getText().toString());
+
             }
 
-            // Starts game activity
-            //Intent intent = new Intent(getApplicationContext(), GameActivity.class);
-            //startActivity(intent);
         } else if (buttonId == R.id.startButton) {
             // TODO: Start button implementation
+            Thread imageDownload = new Thread(new DownloadImagesTask(recyclerAdapter.getSelectedUrls()));
+            imageDownload.start();
+
         }
     }
 
@@ -128,12 +140,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    private class LoadImagesThread implements Runnable {
+    private void startGame() {
+
+    }
+
+    private class LoadImagesTask implements Runnable {
         private String url;
-        private final ArrayList<String> imageLinks = new ArrayList<>();
         Elements images;
 
-        LoadImagesThread(String url) {
+        LoadImagesTask(String url) {
             this.url = url;
         }
         @Override
@@ -157,10 +172,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 images = doc.select("img[src~=(?i).(gif|png|jpe?g)]");
                 progressBar.setMax(images.size());
                 for (int i = 0; i < images.size(); i++) {
-                    // NOTE: Slight sleep to ensure sequential loading is working, consider removing in final
-                    Thread.sleep(100);
                     if (Thread.interrupted()) {
-                        closeThread(false);
+                        concludeUI(false);
+                        break;
                     }
                     Element e = images.get(i);
 
@@ -169,14 +183,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         sourceAttribute = url + sourceAttribute;
                     }
                     updateUI(i + 1, sourceAttribute);
-
                     Log.e("LOADIMAGE", sourceAttribute);
 
-                    closeThread(true);
                 }
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                closeThread(false);
+                concludeUI(true);
             } catch (IOException ioException) {
                 ioException.printStackTrace();
             }
@@ -210,25 +220,131 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         }
 
-        private void closeThread(boolean success) {
+        private void concludeUI(boolean success) {
             mHandler.post(new Runnable() {
                 @Override
                 public void run() {
                     if (success) {
                         Toast.makeText(getApplicationContext(), "Images processed!", Toast.LENGTH_SHORT).show();
-                        startButton.setVisibility(View.VISIBLE);
                         imageReady = true;
                     } else {
                         recyclerAdapter.clearUrls();
                         Toast.makeText(getApplicationContext(), "Image loading failed!", Toast.LENGTH_SHORT).show();
                         imageReady = false;
                     }
+
+                    imageProcess = null;
                     progressBar.setVisibility(View.INVISIBLE);
                     textView.setVisibility(View.INVISIBLE);
-                    imageProcess = null;
+                    if (success) {
+                        startButton.setVisibility(View.VISIBLE);
+                    }
                 }
             });
         }
+    }
+
+    private class DownloadImagesTask implements Runnable {
+        private ArrayList<String> urls;
+
+        DownloadImagesTask(ArrayList<String> urls) {
+            this.urls = urls;
+        }
+
+        @Override
+        public void run() {
+            startUI();
+
+            for (int i = 0; i < urls.size(); i++) {
+                if (Thread.interrupted()) {
+                    concludeUI(false);
+                    break;
+                }
+
+                updateUI(i + 1);
+
+                if (!download(urls.get(i), "selectedImage" + (i + 1) + ".jpg")) {
+                    Thread.currentThread().interrupt();
+                    concludeUI(false);
+                    break;
+                }
+            }
+
+            concludeUI(true);
+
+        }
+
+        public boolean download(String downloadUrl, String filename) {
+            File dir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+            File file = new File(dir, filename);
+
+            try {
+                URL url = new URL(downloadUrl);
+                URLConnection conn = url.openConnection();
+
+                InputStream in = conn.getInputStream();
+                FileOutputStream out = new FileOutputStream(file);
+
+                byte[] buf = new byte[1024];
+                int bytesRead = -1;
+                while ((bytesRead = in.read(buf)) != -1) {
+                    out.write(buf, 0, bytesRead);
+                }
+
+                out.close();
+                in.close();
+                return true;
+
+            } catch (IOException e) {
+                e.printStackTrace();
+                return false;
+            }
+        }
+
+        private void startUI() {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    startButton.setVisibility(View.INVISIBLE);
+                    progressBar.setProgress(0);
+                    progressBar.setMax(urls.size());
+                    progressBar.setVisibility(View.VISIBLE);
+                    textView.setText("Starting to download images..");
+                    textView.setVisibility(View.VISIBLE);
+                }
+            });
+        }
+
+        private void updateUI(int progress) {
+            mHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    progressBar.setProgress(progress);
+                    textView.setText(String.format(Locale.ENGLISH, "Downloading image %d of %d...", progress, urls.size()));
+                }
+            });
+
+        }
+
+        private void concludeUI(boolean success) {
+            mHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    progressBar.setVisibility(View.INVISIBLE);
+                    textView.setVisibility(View.INVISIBLE);
+
+                    if (success) {
+                        Intent intent = new Intent(getApplicationContext(), GameActivity.class);
+                        startActivity(intent);
+                    } else {
+                        startButton.setVisibility(View.VISIBLE);
+                        Toast.makeText(getApplicationContext(), "Downloading of images failed, please try again", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+        }
+
+
     }
 
     /*public class LoadImagesLinksTask extends AsyncTask<String, Integer, Void> {

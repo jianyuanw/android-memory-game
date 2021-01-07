@@ -39,6 +39,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
 
     public void clearUrls() {
         urls.clear();
+        selected.clear();
         this.notifyDataSetChanged();
     }
 
