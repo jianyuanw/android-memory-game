@@ -46,8 +46,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     Thread imageProcess = null;
     Button startButton;
     Button fetchButton;
-    boolean imageReady = false;
-    boolean imageDownloaded = false;
     Handler mHandler = new Handler();
     TextInputEditText input;
 
@@ -226,11 +224,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 public void run() {
                     if (success) {
                         Toast.makeText(getApplicationContext(), "Images processed!", Toast.LENGTH_SHORT).show();
-                        imageReady = true;
                     } else {
                         recyclerAdapter.clearUrls();
                         Toast.makeText(getApplicationContext(), "Image loading failed!", Toast.LENGTH_SHORT).show();
-                        imageReady = false;
                     }
 
                     imageProcess = null;
@@ -346,77 +342,4 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
     }
-
-    /*public class LoadImagesLinksTask extends AsyncTask<String, Integer, Void> {
-        private final ArrayList<String> imageLinks = new ArrayList<>();
-        private int size;
-
-        @Override
-        protected Void doInBackground(String... urls) {
-            for (String url : urls) {
-                // Trim trailing slashes
-                if (url.endsWith("/")) {
-                    url = url.substring(0, url.length() - 1);
-                }
-                try {
-                    Document doc = Jsoup.connect(url).get();
-                    Elements images = doc.select("img[src~=(?i).(gif|png|jpe?g)]");
-                    size = images.size();
-                    progressBar.setMax(images.size());
-                    for (int i = 0; i < images.size(); i++) {
-                        Element e = images.get(i);
-                        publishProgress(i + 1);
-                        String sourceAttribute = e.attr("src");
-                        if (!sourceAttribute.startsWith("http")) {
-                            imageLinks.add(url + sourceAttribute);
-                        } else {
-                            imageLinks.add(sourceAttribute);
-                        }
-                        Log.e("TESTING", sourceAttribute);
-
-                        updateUI(i);
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-
-                }
-            }
-
-            progressBar.setMax(imageLinks.size());
-
-//            recyclerAdapter.setUrls(imageLinks);
-
-            return null;
-        }
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-
-            textView.setText("");
-            progressBar.setProgress(0);
-        }
-
-        protected void onProgressUpdate(Integer... progress) {
-            progressBar.setProgress(progress[0]);
-            textView.setText(String.format(Locale.ENGLISH, "Processing img element %d of %d...", progress[0], size));
-        }
-
-        @Override
-        protected void onPostExecute(Void result) {
-            for (String s : imageLinks) {
-                Log.d("test", s);
-            }
-            textView.setText("Done!");
-        }
-
-        void updateUI(int position) {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    recyclerAdapter.notifyItemChanged(position);
-                }
-            });
-        }
-    }*/
 }
