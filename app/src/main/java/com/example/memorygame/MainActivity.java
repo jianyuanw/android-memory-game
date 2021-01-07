@@ -6,7 +6,9 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -50,11 +52,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     Button fetchButton;
     Handler mHandler = new Handler();
     TextInputEditText input;
+    SharedPreferences sharedPreferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        sharedPreferences = getSharedPreferences("settings", Context.MODE_PRIVATE);
 
         recyclerView = findViewById(R.id.recyclerView);
         recyclerAdapter = new RecyclerAdapter(this);
@@ -102,7 +107,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
-            return true;
+            Intent intent = new Intent(this, SettingsActivity.class);
+
+            startActivity(intent);
         }
 
         return super.onOptionsItemSelected(item);
@@ -188,11 +195,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
 
                 startUI();
+
                 if (url.endsWith("/")) {
                     url = url.substring(0, url.length() - 1);
                 }
+
                 Document doc = Jsoup.connect(url).get();
                 images = doc.select("img[src~=(?i).(gif|png|jpe?g)]");
+
+                String fetchPreference = sharedPreferences.getString("fetch", "All");
+
+                // For limiting image parsing depending on user preferences
+                if (! fetchPreference.equals("All") && Integer.parseInt(fetchPreference) < images.size()) {
+                    // Limits images to be parsed by removing excess images
+                    images.subList(Integer.parseInt(fetchPreference), images.size()).clear();
+                }
+
                 progressBar.setMax(images.size());
                 for (int i = 0; i < images.size(); i++) {
                     if (Thread.interrupted()) {
@@ -212,6 +230,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 concludeUI(true);
             } catch (IOException ioException) {
                 ioException.printStackTrace();
+                concludeUI(false);
             }
 
         }
@@ -307,7 +326,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 FileOutputStream out = new FileOutputStream(file);
 
                 byte[] buf = new byte[1024];
-                int bytesRead = -1;
+                int bytesRead;
                 while ((bytesRead = in.read(buf)) != -1) {
                     out.write(buf, 0, bytesRead);
                 }
