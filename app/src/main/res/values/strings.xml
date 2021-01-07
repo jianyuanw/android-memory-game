@@ -5,4 +5,5 @@
     <string name="start_buttontext">Start Game</string>
     <string name="back_buttontext">Back</string>
     <string name="recyclerImageView">ImageView in RecyclerView</string>
+    <string name="action_settings">Settings</string>
 </resources>
