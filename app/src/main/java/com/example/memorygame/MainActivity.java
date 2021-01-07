@@ -79,6 +79,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         recyclerAdapter.clearUrls();
         progressBar.setVisibility(View.INVISIBLE);
         textView.setVisibility(View.INVISIBLE);
+        fetchButton.setEnabled(true);
         startButton.setVisibility(View.INVISIBLE);
         startButton.setEnabled(false);
     }
@@ -301,6 +302,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
+                    fetchButton.setEnabled(false);
                     startButton.setVisibility(View.INVISIBLE);
                     progressBar.setProgress(0);
                     progressBar.setMax(urls.size());
@@ -334,6 +336,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         startActivity(intent);
                     } else {
                         startButton.setVisibility(View.VISIBLE);
+                        fetchButton.setEnabled(true);
                         Toast.makeText(getApplicationContext(), "Downloading of images failed, please try again", Toast.LENGTH_SHORT).show();
                     }
                 }
