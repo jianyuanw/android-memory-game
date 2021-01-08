@@ -49,4 +49,16 @@
         app:layout_constraintBottom_toTopOf="@+id/backButton"
         app:layout_constraintTop_toBottomOf="@+id/textMatches"
         tools:layout_editor_absoluteX="119dp" />
+
+    <TextView
+        android:id="@+id/textInfo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Welcome to the memory game!"
+        android:textAlignment="center"
+        android:textSize="24sp"
+        app:layout_constraintBottom_toTopOf="@+id/backButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/gameRecyclerView" />
 </androidx.constraintlayout.widget.ConstraintLayout>
