@@ -60,10 +60,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
 
         sharedPreferences = getSharedPreferences("settings", Context.MODE_PRIVATE);
+        Integer gridPreferences = Integer.parseInt(sharedPreferences.getString("grid", "3"));
 
         recyclerView = findViewById(R.id.recyclerView);
         recyclerAdapter = new RecyclerAdapter(this);
-        recyclerView.setLayoutManager(new GridLayoutManager(this, 3));
+        recyclerView.setLayoutManager(new GridLayoutManager(this, gridPreferences));
         recyclerView.setAdapter(recyclerAdapter);
 
         progressBar = findViewById(R.id.progressBar);
@@ -83,8 +84,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onStart() {
         super.onStart();
+        Integer gridPreferences = Integer.parseInt(sharedPreferences.getString("grid", "3"));
+
         recyclerAdapter.clearUrls();
         progressBar.setVisibility(View.INVISIBLE);
+        recyclerView.setLayoutManager(new GridLayoutManager(this, gridPreferences));
         textView.setVisibility(View.INVISIBLE);
         fetchButton.setEnabled(true);
         startButton.setVisibility(View.INVISIBLE);
