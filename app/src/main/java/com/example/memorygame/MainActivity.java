@@ -60,7 +60,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
 
         sharedPreferences = getSharedPreferences("settings", Context.MODE_PRIVATE);
-        Integer gridPreferences = Integer.parseInt(sharedPreferences.getString("grid", "3"));
+        int gridPreferences = Integer.parseInt(sharedPreferences.getString("grid", "3"));
 
         recyclerView = findViewById(R.id.recyclerView);
         recyclerAdapter = new RecyclerAdapter(this);
@@ -84,7 +84,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onStart() {
         super.onStart();
-        Integer gridPreferences = Integer.parseInt(sharedPreferences.getString("grid", "3"));
+        int gridPreferences = Integer.parseInt(sharedPreferences.getString("grid", "3"));
 
         recyclerAdapter.clearUrls();
         progressBar.setVisibility(View.INVISIBLE);
@@ -382,7 +382,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     textView.setVisibility(View.INVISIBLE);
 
                     if (success) {
-                        Intent intent = new Intent(getApplicationContext(), GameActivity.class);
+                        Intent intent = new Intent(getApplicationContext(), SimpleGameActivity.class);
                         startActivity(intent);
                     } else {
                         startButton.setVisibility(View.VISIBLE);
