@@ -156,15 +156,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onListItemClick(int position) {
-        ImageView imageView = recyclerView.findViewHolderForAdapterPosition(position).itemView.findViewById(R.id.imageView);
+        View itemView = recyclerView.findViewHolderForAdapterPosition(position).itemView;
+        ImageView imageView = itemView.findViewById(R.id.imageView);
+        ImageView tickBox = itemView.findViewById(R.id.tickBox);
+
         if (imageView.getBackground() == null) {
             imageView.setBackground(ContextCompat.getDrawable(this, R.drawable.green_border));
-            //this is to add on tickbox vector into the ticked pictures
-            imageView.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.tickbox));
+            tickBox.setVisibility(View.VISIBLE);
             //activate this to try heart shape
             //imageView.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.heart));
         } else {
             imageView.setBackground(null);
+            tickBox.setVisibility(View.INVISIBLE);
         }
 
         if (recyclerAdapter.getSelectedUrls().size() == 6) {
@@ -172,10 +175,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         } else if (startButton.isEnabled()) {
             startButton.setEnabled(false);
         }
-    }
-
-    private void startGame() {
-
     }
 
     private class LoadImagesTask implements Runnable {

@@ -62,16 +62,19 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        ImageView currentImage = holder.imageView;
+        ImageView imageView = holder.imageView;
+        ImageView tickBox = holder.tickBox;
 
-        Glide.with(context).load(urls.get(position)).into(currentImage);
+        Glide.with(context).load(urls.get(position)).into(imageView);
 
-        currentImage.setTag(urls.get(position));
+        imageView.setTag(urls.get(position));
 
         if (selected.containsKey(position)) {
-            currentImage.setBackground(ContextCompat.getDrawable(context, R.drawable.green_border));
+            imageView.setBackground(ContextCompat.getDrawable(context, R.drawable.green_border));
+            tickBox.setVisibility(View.VISIBLE);
         } else {
-            currentImage.setBackground(null);
+            imageView.setBackground(null);
+            tickBox.setVisibility(View.INVISIBLE);
         }
     }
 
@@ -84,11 +87,13 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
     class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
         ImageView imageView;
+        ImageView tickBox;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
 
             imageView = itemView.findViewById(R.id.imageView);
+            tickBox = itemView.findViewById(R.id.tickBox);
 
             itemView.setOnClickListener(this);
         }
