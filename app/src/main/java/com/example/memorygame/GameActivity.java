@@ -1,6 +1,7 @@
 package com.example.memorygame;
 
 import android.graphics.drawable.ColorDrawable;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
@@ -93,11 +94,13 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
                             stopTimer();
                             winGameText();
                             // TODO: Add sound effect for winning
+                            playSound(R.raw.win_audio);
                             returnToMainActivityAfterFourSeconds();
                         } else {
                             // Game not yet end
                             matchedText();
                             // TODO: Add sound effect for matching
+                            playSound(R.raw.success_bell2);
                         }
                     } else {
                         // Images did not match
@@ -119,6 +122,11 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         timerIsRunning = false;
         timerSeconds = 0;
         infoTextView = findViewById(R.id.textInfo);
+    }
+
+    public void playSound(int soundId) {
+        MediaPlayer mp = MediaPlayer.create(getApplicationContext(), soundId);
+        mp.start();
     }
 
     @Override

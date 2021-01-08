@@ -382,7 +382,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     textView.setVisibility(View.INVISIBLE);
 
                     if (success) {
-                        Intent intent = new Intent(getApplicationContext(), SimpleGameActivity.class);
+                        Intent intent = new Intent(getApplicationContext(), GameActivity.class);
                         startActivity(intent);
                     } else {
                         startButton.setVisibility(View.VISIBLE);
