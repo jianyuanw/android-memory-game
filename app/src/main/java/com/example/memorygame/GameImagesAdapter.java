@@ -15,13 +15,33 @@ import java.util.List;
 
 public class GameImagesAdapter extends RecyclerView.Adapter<GameImagesAdapter.ViewHolder> {
 
-    public class ViewHolder extends RecyclerView.ViewHolder {
+    public interface OnItemClickListener {
+        void onItemClick(View itemView, int position);
+    }
 
+    private OnItemClickListener listener;
+
+    public void setOnItemClickListener(OnItemClickListener listener) {
+        this.listener = listener;
+    }
+
+    public class ViewHolder extends RecyclerView.ViewHolder {
         private ImageView gameImageView;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
+
             gameImageView = itemView.findViewById(R.id.gameImageView);
+
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (listener != null) {
+                        int position = getAdapterPosition();
+                        listener.onItemClick(itemView, position);
+                    }
+                }
+            });
         }
     }
 

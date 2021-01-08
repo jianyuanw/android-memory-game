@@ -5,6 +5,7 @@ import android.os.Environment;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class GameImage {
     private int id;
@@ -23,6 +24,11 @@ public class GameImage {
         return filePath;
     }
 
+    // Grab all files from pictures directory
+    // Extract file path
+    // Create two GameImage objects per file with same id
+    // Store all objects into ArrayList
+    // Shuffle and return ArrayList
     public static ArrayList<GameImage> createGameImageList(Context context) {
         ArrayList<GameImage> gameImages = new ArrayList<>();
 
@@ -39,7 +45,7 @@ public class GameImage {
             id++;
         }
 
-        // TODO: Shuffle list
+        Collections.shuffle(gameImages);
 
         return gameImages;
     }
