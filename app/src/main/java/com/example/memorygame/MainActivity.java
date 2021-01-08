@@ -159,6 +159,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         ImageView imageView = recyclerView.findViewHolderForAdapterPosition(position).itemView.findViewById(R.id.imageView);
         if (imageView.getBackground() == null) {
             imageView.setBackground(ContextCompat.getDrawable(this, R.drawable.green_border));
+            //this is to add on tickbox vector into the ticked pictures
+            imageView.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.tickbox));
+            //activate this to try heart shape
+            //imageView.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.heart));
         } else {
             imageView.setBackground(null);
         }
