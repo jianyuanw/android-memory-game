@@ -18,6 +18,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.webkit.URLUtil;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -47,11 +49,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     RecyclerAdapter recyclerAdapter;
     ProgressBar progressBar;
     TextView textView;
+    TextView helpText;
     Thread imageProcess = null;
     Button startButton;
     Button fetchButton;
     Handler mHandler = new Handler();
-    TextInputEditText input;
+    AutoCompleteTextView input;
     SharedPreferences sharedPreferences;
 
     @Override
@@ -69,7 +72,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         progressBar = findViewById(R.id.progressBar);
 
+        helpText = findViewById(R.id.helpText);
+
+        // Initializing autocomplete for editText
         input = findViewById(R.id.textInputEditText);
+        String[] websites = getResources().getStringArray(R.array.suggested_urls);
+        ArrayAdapter<String> adapter =
+                new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, websites);
+        input.setAdapter(adapter);
 
         textView = findViewById(R.id.textView);
 
@@ -91,6 +101,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         recyclerView.setLayoutManager(new GridLayoutManager(this, gridPreferences));
         textView.setVisibility(View.INVISIBLE);
         fetchButton.setEnabled(true);
+        helpText.setVisibility(View.INVISIBLE);
         startButton.setVisibility(View.INVISIBLE);
         startButton.setEnabled(false);
     }
@@ -111,6 +122,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            // Interrupt before switching to menu
+            if (imageProcess != null) {
+                imageProcess.interrupt();
+            }
+
             Intent intent = new Intent(this, SettingsActivity.class);
 
             startActivity(intent);
@@ -133,7 +149,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         int buttonId = v.getId();
 
         if (buttonId == R.id.fetchButton) {
-            // TODO: Scrape website and populate GridView
+            // Scrape website and populate GridView
             hideKeyboard(this);
             if (input.getText() != null) {
                 if (imageProcess != null) {
@@ -151,7 +167,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
 
         } else if (buttonId == R.id.startButton) {
-            // TODO: Start button implementation
+            // Start button implementation
             Thread imageDownload = new Thread(new DownloadImagesTask(recyclerAdapter.getSelectedUrls()));
             imageDownload.start();
 
@@ -167,7 +183,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (imageView.getBackground() == null) {
             imageView.setBackground(ContextCompat.getDrawable(this, R.drawable.green_border));
             tickBox.setVisibility(View.VISIBLE);
-            //activate this to try heart shape
+            // activate this to try heart shape
             //imageView.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.heart));
         } else {
             imageView.setBackground(null);
@@ -253,6 +269,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     textView.setText("Starting to process images..");
                     textView.setVisibility(View.VISIBLE);
                     startButton.setVisibility(View.INVISIBLE);
+                    helpText.setVisibility(View.INVISIBLE);
                 }
             });
         }
@@ -285,6 +302,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     textView.setVisibility(View.INVISIBLE);
                     if (success) {
                         startButton.setVisibility(View.VISIBLE);
+                        helpText.setVisibility(View.VISIBLE);
                     }
                 }
             });

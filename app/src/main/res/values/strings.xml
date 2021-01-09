@@ -11,6 +11,7 @@
     <string name="action_settings">Settings</string>
     <string name="fetch_settings">Fetch maximum items: </string>
     <string name="grid_settings">Images per row: </string>
+    <string name="helptext">Please select 6 images</string>
 
     <string-array name="fetch_choices">
         <item>All</item>
@@ -25,5 +26,13 @@
         <item>1</item>
         <item>2</item>
         <item>4</item>
+    </string-array>
+
+    <string-array name="suggested_urls">
+        <item>https://freestocks.org</item>
+        <item>https://picography.co</item>
+        <item>https://stocksnap.io</item>
+        <item>https://www.gratisography.com/</item>
+        <item>https://www.reshot.com/</item>
     </string-array>
 </resources>

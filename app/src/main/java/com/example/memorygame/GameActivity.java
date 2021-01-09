@@ -93,19 +93,21 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
                             // Game ended
                             stopTimer();
                             winGameText();
-                            // TODO: Add sound effect for winning
+                            // Sound effect for winning
                             playSound(R.raw.win_audio);
                             returnToMainActivityAfterFourSeconds();
                         } else {
                             // Game not yet end
                             matchedText();
-                            // TODO: Add sound effect for matching
+                            // Sound effect for matching
                             playSound(R.raw.success_bell2);
                         }
                     } else {
                         // Images did not match
                         wrongImagePairIsStillOpen = true;
                         didNotMatchText();
+                        // Sound effect for wrong match
+                        playSound(R.raw.failure_beep);
                         closeBothImagesAfterTwoSeconds();
                     }
 
