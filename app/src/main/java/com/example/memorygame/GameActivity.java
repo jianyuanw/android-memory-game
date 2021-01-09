@@ -70,7 +70,7 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
                         return;
                     }
                     // Reveal image
-                    firstImage.setForeground(null);
+                    flipCard(firstImage);
                     firstImageId = gameImages.get(position).getId();
                     numberOfImagesOpened = 1;
 
@@ -82,7 +82,7 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
                         return;
                     }
                     // Reveal image
-                    secondImage.setForeground(null);
+                    flipCard(secondImage);
                     secondImageId = gameImages.get(position).getId();
 
                     if (firstImageId == secondImageId) {
@@ -131,6 +131,34 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         mp.start();
     }
 
+    public void flipCard(View v) {
+        if (v.getForeground() != null) {
+            v.animate().withLayer().rotationY(90).setDuration(300).withEndAction(
+                    new Runnable() {
+                        @Override public void run() {
+                            // second quarter turn
+                            v.setForeground(null);
+                            v.setRotationY(-90);
+                            v.animate().withLayer().rotationY(0).setDuration(300).start();
+                        }
+                    }
+            ).start();
+        } else {
+            v.animate().withLayer().rotationY(-90).setDuration(300).withEndAction(
+                    new Runnable() {
+                        @Override public void run() {
+                            // second quarter turn
+                            v.setForeground(new ColorDrawable(
+                                            ContextCompat.getColor(GameActivity.this, R.color.teal_200)));
+                            v.setRotationY(90);
+                            v.animate().withLayer().rotationY(0).setDuration(300).start();
+                        }
+                    }
+            ).start();
+        }
+
+    }
+
     @Override
     public void onClick(View v) {
         if (v.getId() == R.id.backButton) {
@@ -142,10 +170,12 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                firstImage.setForeground(new ColorDrawable(
+                flipCard(firstImage);
+                flipCard(secondImage);
+                /*firstImage.setForeground(new ColorDrawable(
                         ContextCompat.getColor(GameActivity.this, R.color.teal_200)));
                 secondImage.setForeground(new ColorDrawable(
-                        ContextCompat.getColor(GameActivity.this, R.color.teal_200)));
+                        ContextCompat.getColor(GameActivity.this, R.color.teal_200)));*/
                 wrongImagePairIsStillOpen = false;
                 selectImageText();
             }
