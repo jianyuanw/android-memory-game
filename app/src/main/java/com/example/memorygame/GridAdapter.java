@@ -29,7 +29,7 @@ public class GridAdapter extends BaseAdapter {
 
     @Override
     public int getCount() {
-        return image.size() * 2;
+        return image.size();
     }
     @Override
     public Object getItem(int pos) {

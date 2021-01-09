@@ -32,6 +32,7 @@ public class GameActivity extends AppCompatActivity {
         Collections.shuffle(dupImages);
         GridView gridView = findViewById(R.id.gridView);
         GridAdapter adapter = new GridAdapter(this, dupImages);
+        gridView.setAdapter(adapter);
     }
 
 }
