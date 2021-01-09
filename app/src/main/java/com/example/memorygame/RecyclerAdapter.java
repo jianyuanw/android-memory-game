@@ -2,8 +2,7 @@ package com.example.memorygame;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.util.Log;
+import android.graphics.drawable.BitmapDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,47 +12,36 @@ import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
 public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHolder> {
     // Responsible for displaying items in RecyclerView
     // Creates rows and maps items in list to rows
-    ArrayList<String> urls;
+    ArrayList<Bitmap> images;
     Context context;
-    HashMap<Integer, String> selected;
+    HashMap<Integer, BitmapDrawable> selected;
     final private ListItemClickListener onClickListener;
 
     public RecyclerAdapter(Context context) {
         this.context = context;
-        urls = new ArrayList<>();
+        images = new ArrayList<>();
         selected = new HashMap<>();
         this.onClickListener = (ListItemClickListener) context;
     }
 
-    public void addUrl(String url) {
-        urls.add(url);
-        this.notifyItemChanged(urls.size() - 1);
+    public void addImage(String url, Bitmap bitmap) {
+        images.add(bitmap);
+        this.notifyItemChanged(images.size() - 1);
     }
 
-    public void clearUrls() {
-        urls.clear();
+    public void clearImages() {
+        images.clear();
         selected.clear();
         this.notifyDataSetChanged();
     }
 
-    public int countUrls() {
-        return urls.size();
-    }
-
-    public ArrayList<String> getSelectedUrls() {
+    public ArrayList<BitmapDrawable> getSelectedImages() {
         return new ArrayList<>(selected.values());
     }
 
@@ -71,9 +59,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
         ImageView imageView = holder.imageView;
         ImageView tickBox = holder.tickBox;
 
-        Glide.with(context).load(urls.get(position)).into(imageView);
-
-        imageView.setTag(urls.get(position));
+        imageView.setImageBitmap(images.get(position));
 
         if (selected.containsKey(position)) {
             imageView.setBackground(ContextCompat.getDrawable(context, R.drawable.green_border));
@@ -87,7 +73,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
     @Override
     public int getItemCount() {
         // Represents number of rows in your RecyclerView
-        return urls.size();
+        return images.size();
     }
 
     class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
@@ -110,7 +96,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
             if (selected.containsKey(position)) {
                 selected.remove(position);
             } else {
-                selected.put(position, (String) imageView.getTag());
+                selected.put(position, (BitmapDrawable) imageView.getDrawable());
             }
             onClickListener.onListItemClick(position);
         }

@@ -9,6 +9,9 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -26,8 +29,6 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.material.textfield.TextInputEditText;
-
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -37,7 +38,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -96,7 +96,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onStart();
         int gridPreferences = Integer.parseInt(sharedPreferences.getString("grid", "3"));
 
-        recyclerAdapter.clearUrls();
+        recyclerAdapter.clearImages();
         progressBar.setVisibility(View.INVISIBLE);
         recyclerView.setLayoutManager(new GridLayoutManager(this, gridPreferences));
         textView.setVisibility(View.INVISIBLE);
@@ -135,6 +135,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        // Deletes files on full exit from application
+        File dir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        for (int i = 1; i <= 6; i++) {
+            File file = new File(dir, "selectedImage" + i + ".jpg");
+            if (file.exists()) {
+                file.delete();
+            }
+        }
+    }
+
     public void hideKeyboard(Activity activity) {
         InputMethodManager imm = (InputMethodManager) activity.getSystemService(Activity.INPUT_METHOD_SERVICE);
         View view = activity.getCurrentFocus();
@@ -168,7 +182,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         } else if (buttonId == R.id.startButton) {
             // Start button implementation
-            Thread imageDownload = new Thread(new DownloadImagesTask(recyclerAdapter.getSelectedUrls()));
+            Thread imageDownload = new Thread(new SaveImagesTask(recyclerAdapter.getSelectedImages()));
             imageDownload.start();
 
         }
@@ -190,7 +204,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             tickBox.setVisibility(View.INVISIBLE);
         }
 
-        if (recyclerAdapter.getSelectedUrls().size() == 6) {
+        if (recyclerAdapter.getSelectedImages().size() == 6) {
             startButton.setEnabled(true);
         } else if (startButton.isEnabled()) {
             startButton.setEnabled(false);
@@ -263,7 +277,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 @Override
                 public void run() {
                     recyclerView.getRecycledViewPool().clear();
-                    recyclerAdapter.clearUrls();
+                    recyclerAdapter.clearImages();
                     progressBar.setProgress(0);
                     progressBar.setVisibility(View.VISIBLE);
                     textView.setText("Starting to process images..");
@@ -275,14 +289,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         private void updateUI(int progress, String url) {
-            mHandler.post(new Runnable() {
+            new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    progressBar.setProgress(progress);
-                    textView.setText(String.format(Locale.ENGLISH, "Processing img element %d of %d...", progress, images.size()));
-                    recyclerAdapter.addUrl(url);
+                    try {
+                        Bitmap bmp = BitmapFactory.decodeStream(new URL(url).openConnection().getInputStream());
+                        mHandler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                progressBar.setProgress(progress);
+                                textView.setText(String.format(Locale.ENGLISH, "Downloading image %d of %d...", progress, images.size()));
+                                recyclerAdapter.addImage(url, bmp);
+                            }
+                        });
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
-            });
+            }).run();
+
 
         }
 
@@ -293,7 +318,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     if (success) {
                         Toast.makeText(getApplicationContext(), "Images processed!", Toast.LENGTH_SHORT).show();
                     } else {
-                        recyclerAdapter.clearUrls();
+                        recyclerAdapter.clearImages();
                         Toast.makeText(getApplicationContext(), "Image loading failed!", Toast.LENGTH_SHORT).show();
                     }
 
@@ -309,18 +334,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    private class DownloadImagesTask implements Runnable {
-        private ArrayList<String> urls;
+    private class SaveImagesTask implements Runnable {
+        private ArrayList<BitmapDrawable> bitmaps;
 
-        DownloadImagesTask(ArrayList<String> urls) {
-            this.urls = urls;
+        SaveImagesTask(ArrayList<BitmapDrawable> bitmaps) {
+            this.bitmaps = bitmaps;
         }
 
         @Override
         public void run() {
             startUI();
 
-            for (int i = 0; i < urls.size(); i++) {
+            for (int i = 0; i < bitmaps.size(); i++) {
                 if (Thread.interrupted()) {
                     concludeUI(false);
                     break;
@@ -328,7 +353,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 updateUI(i + 1);
 
-                if (!download(urls.get(i), "selectedImage" + (i + 1) + ".jpg")) {
+                if (!save(bitmaps.get(i).getBitmap(), "selectedImage" + (i + 1) + ".jpg")) {
                     Thread.currentThread().interrupt();
                     concludeUI(false);
                     break;
@@ -339,7 +364,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         }
 
-        public boolean download(String downloadUrl, String filename) {
+        public boolean save(Bitmap image, String filename) {
+            File dir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+            File file = new File(dir, filename);
+
+            if (file.exists()) {
+                file.delete();
+            }
+
+            try {
+                FileOutputStream out = new FileOutputStream(file);
+                image.compress(Bitmap.CompressFormat.JPEG, 100, out);
+                out.flush();
+                out.close();
+                return true;
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
+        }
+
+        // TODO: Remove this if not necessary
+        /*public boolean download(String downloadUrl, String filename) {
             File dir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
             File file = new File(dir, filename);
 
@@ -364,16 +410,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 e.printStackTrace();
                 return false;
             }
-        }
+        }*/
 
         private void startUI() {
-            runOnUiThread(new Runnable() {
+            mHandler.post(new Runnable() {
                 @Override
                 public void run() {
                     fetchButton.setEnabled(false);
                     startButton.setVisibility(View.INVISIBLE);
                     progressBar.setProgress(0);
-                    progressBar.setMax(urls.size());
+                    progressBar.setMax(bitmaps.size());
                     progressBar.setVisibility(View.VISIBLE);
                     textView.setText("Starting to download images..");
                     textView.setVisibility(View.VISIBLE);
@@ -386,7 +432,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 @Override
                 public void run() {
                     progressBar.setProgress(progress);
-                    textView.setText(String.format(Locale.ENGLISH, "Downloading image %d of %d...", progress, urls.size()));
+                    textView.setText(String.format(Locale.ENGLISH, "Saving image %d of %d...", progress, bitmaps.size()));
                 }
             });
 

@@ -11,7 +11,6 @@ import android.widget.ImageView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide;
 
 import java.util.List;
 
@@ -68,8 +67,7 @@ public class GameImagesAdapter extends RecyclerView.Adapter<GameImagesAdapter.Vi
         Bitmap bitmap = BitmapFactory.decodeFile(gameImage.getFilePath());
 
         ImageView gameImageView = holder.gameImageView;
-        Glide.with(gameImageView.getContext()).load(gameImage.getFilePath()).into(gameImageView);
-        // gameImageView.setImageBitmap(bitmap);
+        gameImageView.setImageBitmap(bitmap);
     }
 
     @Override
