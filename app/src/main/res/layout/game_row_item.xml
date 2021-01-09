@@ -2,25 +2,23 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:card_view="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
+    android:layout_width="wrap_content"
     android:layout_height="wrap_content">
 
     <androidx.cardview.widget.CardView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_gravity="center"
         card_view:cardBackgroundColor="@color/white"
         card_view:contentPadding="4dp">
 
         <ImageView
             android:id="@+id/gameImageView"
-            android:layout_width="120dp"
+            android:layout_width="140dp"
             android:layout_height="100dp"
-            android:layout_marginLeft="20dp"
-            android:layout_marginRight="20dp"
             android:contentDescription="Game Image"
-            android:scaleType="centerCrop"
             android:foreground="@color/teal_200"
+            android:scaleType="centerCrop"
             tools:srcCompat="@tools:sample/avatars" />
 
     </androidx.cardview.widget.CardView>
