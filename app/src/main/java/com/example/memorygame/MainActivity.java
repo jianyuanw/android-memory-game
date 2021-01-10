@@ -29,23 +29,25 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Locale;
+import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, ListItemClickListener {
 
@@ -243,7 +245,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Matcher srcTagMatcher = srcTagPattern.matcher(html);
         while (srcTagMatcher.find()) {
             String srcTag = srcTagMatcher.group(0);
-            if (srcTag.contains(".jpg") || srcTag.contains(".jpeg") || srcTag.contains(".png")) {
+            if (srcTag != null && (srcTag.contains(".jpg") || srcTag.contains(".jpeg") || srcTag.contains(".png"))) {
                 String src = srcTag.substring(5, srcTag.length() - 1);
                 if (!src.startsWith("http")) {
                     src = relativeImgPrefix + src;
@@ -257,12 +259,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private class LoadImagesTask implements Runnable {
         private String url;
-//        Elements images;
+        boolean useGlide;
+        boolean useJsoup;
+
         private ArrayList<String> images;
 
         LoadImagesTask(String url) {
-            this.url = url;
+            // Trim trailing slashes in constructor
+            this.url = url.endsWith("/") ? url.substring(0, url.length() - 1) : url;
+            useGlide = sharedPreferences.getString("glide", "No").equals("Yes");
+            useJsoup = sharedPreferences.getString("jsoup", "No").equals("Yes");
         }
+
         @Override
         public void run() {
             try {
@@ -278,18 +286,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 startUI();
 
-//                if (url.endsWith("/")) {
-//                    url = url.substring(0, url.length() - 1);
-//                }
-
-//                Document doc = Jsoup.connect(url).get();
-//                images = doc.select("img[src~=(?i).(gif|png|jpe?g)]");
-
-                images = extractAllImgSrcFromUrl(url);
+                if (useJsoup) {
+                    // Included because it is interesting, in our tests it was found
+                    // that difference in performance was trivial (~15 ms vs ~60 ms)
+                    // but jsoup parses more accurately
+                    Document doc = Jsoup.connect(url).get();
+                    Elements elements = doc.select("img[src~=(?i).(png|jpe?g)]");
+                    images = (ArrayList<String>) elements.stream()
+                            .map(e -> e.attr("src").startsWith("http") ? e.attr("src") : url + e.attr("src"))
+                            .collect(Collectors.toList());
+                } else {
+                    images = extractAllImgSrcFromUrl(url);
+                }
 
                 String fetchPreference = sharedPreferences.getString("fetch", "All");
 
-                // For limiting image parsing depending on user preferences
+                // For limiting image parsing depending on user preferences, only limits image parsing not element collection
+                // Choice of design based off of ease of implementation and performance bottleneck
                 if (! fetchPreference.equals("All") && Integer.parseInt(fetchPreference) < images.size()) {
                     // Limits images to be parsed by removing excess images
                     images.subList(Integer.parseInt(fetchPreference), images.size()).clear();
@@ -301,17 +314,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         concludeUI(false);
                         break;
                     }
-//                    Element e = images.get(i);
-//
-//                    String sourceAttribute = e.attr("src");
-//                    if (!sourceAttribute.startsWith("http")) {
-//                        sourceAttribute = url + sourceAttribute;
-//                    }
+
                     String sourceAttribute = images.get(i);
                     updateUI(i + 1, sourceAttribute);
                     Log.e("LOADIMAGE", sourceAttribute);
-
                 }
+
                 concludeUI(true);
             } catch (IOException ioException) {
                 ioException.printStackTrace();
@@ -341,17 +349,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 @Override
                 public void run() {
                     try {
-                        Bitmap bmp = BitmapFactory.decodeStream(new URL(url).openConnection().getInputStream());
+                        Bitmap bmp;
+                        if (useGlide) {
+                            bmp = Glide.with(getApplicationContext()).asBitmap().load(url).submit().get();
+                        } else {
+                            bmp = BitmapFactory.decodeStream(new URL(url).openConnection().getInputStream());
+                        }
+                        Bitmap finalBmp = bmp;
                         mHandler.post(new Runnable() {
+
                             @Override
                             public void run() {
                                 progressBar.setProgress(progress);
                                 textView.setText(String.format(Locale.ENGLISH, "Downloading image %d of %d...", progress, images.size()));
-                                recyclerAdapter.addImage(url, bmp);
+                                recyclerAdapter.addImage(url, finalBmp);
                             }
                         });
-                    } catch (IOException e) {
+                    } catch (IOException | InterruptedException | ExecutionException e) {
                         e.printStackTrace();
+                        Thread.currentThread().interrupt();
                     }
                 }
             }).run();

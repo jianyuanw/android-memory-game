@@ -11,6 +11,8 @@
     <string name="action_settings">Settings</string>
     <string name="fetch_settings">Fetch maximum items: </string>
     <string name="grid_settings">Images per row: </string>
+    <string name="jsoup_settings">Enable Glide library: </string>
+    <string name="glide_settings">Enable jsoup library: </string>
     <string name="helptext">Please select 6 images</string>
 
     <string-array name="fetch_choices">
@@ -26,6 +28,16 @@
         <item>1</item>
         <item>2</item>
         <item>4</item>
+    </string-array>
+
+    <string-array name="glide_choices">
+        <item>No</item>
+        <item>Yes</item>
+    </string-array>
+
+    <string-array name="jsoup_choices">
+        <item>No</item>
+        <item>Yes</item>
     </string-array>
 
     <string-array name="suggested_urls">
