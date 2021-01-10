@@ -1,5 +1,6 @@
 package com.example.memorygame;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.drawable.ColorDrawable;
@@ -7,6 +8,7 @@ import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -33,14 +35,16 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
     private int score;
     private int maxScore;
     private boolean wrongImagePairIsStillOpen;
+    private boolean flipping;
 
     private boolean timerIsRunning;
+    private boolean isPaused;
     private int timerSeconds;
 
+    private Button pauseButton;
     private TextView infoTextView;
+    private TextView pauseForeground;
     private String infoText;
-
-    private SharedPreferences sharedPreferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,7 +53,12 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
 
         findViewById(R.id.backButton).setOnClickListener(this);
 
-        sharedPreferences = getSharedPreferences("settings", Context.MODE_PRIVATE);
+        pauseButton = findViewById(R.id.pauseButton);
+        pauseButton.setOnClickListener(this);
+
+        pauseForeground = findViewById(R.id.pauseForeground);
+
+        SharedPreferences sharedPreferences = getSharedPreferences("settings", Context.MODE_PRIVATE);
 
         RecyclerView gameRecyclerView = findViewById(R.id.gameRecyclerView);
         gameImages = GameImage.createGameImageList(this);
@@ -58,9 +67,15 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onItemClick(View itemView, int position) {
                 // Start timer on first click
-                if (!timerIsRunning) {
+                if (!timerIsRunning && !isPaused) {
                     timerIsRunning = true;
+                    isPaused = false;
+                    pauseButton.setVisibility(View.VISIBLE);
                     startTimer();
+                }
+
+                if (isPaused) {
+                    return;
                 }
 
                 if (wrongImagePairIsStillOpen) {
@@ -68,7 +83,10 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
                     return;
                 }
 
+                if (flipping) { return; }
+
                 if (numberOfImagesOpened == 0) {
+                    flipping = true;
                     // Clicked on first image
                     firstImage = itemView.findViewById(R.id.gameImageView);
                     // Image already matched before, do not do anything
@@ -81,6 +99,7 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
                     numberOfImagesOpened = 1;
 
                 } else if (numberOfImagesOpened == 1) {
+                    flipping = true;
                     // Clicked on second image
                     secondImage = itemView.findViewById(R.id.gameImageView);
                     // Image already matched before, do not do anything
@@ -146,6 +165,7 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
                             v.setForeground(null);
                             v.setRotationY(-90);
                             v.animate().withLayer().rotationY(0).setDuration(300).start();
+                            flipping = false;
                         }
                     }
             ).start();
@@ -158,6 +178,7 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
                                             ContextCompat.getColor(GameActivity.this, R.color.teal_200)));
                             v.setRotationY(90);
                             v.animate().withLayer().rotationY(0).setDuration(300).start();
+                            flipping = false;
                         }
                     }
             ).start();
@@ -167,8 +188,25 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onClick(View v) {
-        if (v.getId() == R.id.backButton) {
+        int id = v.getId();
+
+        if (id == R.id.backButton) {
             finish();
+        } else if (id == R.id.pauseButton) {
+            if (isPaused) {
+                isPaused = false;
+                timerIsRunning = true;
+                playSound(R.raw.game_resume);
+                pauseForeground.setVisibility(View.INVISIBLE);
+                pauseButton.setText("Pause");
+                startTimer();
+            } else {
+                isPaused = true;
+                playSound(R.raw.game_pause);
+                pauseForeground.setVisibility(View.VISIBLE);
+                pauseButton.setText("Resume");
+                stopTimer();
+            }
         }
     }
 
@@ -248,6 +286,10 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
+                SharedPreferences preferences = getSharedPreferences("HS_PREF", Activity.MODE_PRIVATE);
+                SharedPreferences.Editor editor = preferences.edit();
+                editor.putInt("currentTime", timerSeconds);
+                editor.apply();
                 finish();
             }
         }, 4000);

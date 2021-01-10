@@ -80,6 +80,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         helpText = findViewById(R.id.helpText);
 
+        findViewById(R.id.scrollText).setSelected(true);
+
         // Initializing autocomplete for editText
         input = findViewById(R.id.textInputEditText);
         String[] websites = getResources().getStringArray(R.array.suggested_urls);
