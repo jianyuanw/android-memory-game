@@ -7,6 +7,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
+import android.provider.MediaStore;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -19,9 +20,6 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 import java.util.Locale;
 
 public class GameActivity extends AppCompatActivity implements View.OnClickListener {
@@ -37,9 +35,10 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
     private int secondImageId;
     private int score;
     private int maxScore;
+
     private boolean wrongImagePairIsStillOpen;
     private boolean flipping;
-
+    private boolean processing;
     private boolean timerIsRunning;
     private boolean isPaused;
     private int timerSeconds;
@@ -49,14 +48,12 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
     private TextView pauseForeground;
     private String infoText;
 
-    private List<String> strHighscores = new ArrayList<String>();
+    private MediaPlayer mediaPlayer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
-
-        strHighscores = getArray();
 
         findViewById(R.id.backButton).setOnClickListener(this);
 
@@ -81,7 +78,8 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
                     startTimer();
                 }
 
-                if (isPaused) {
+                if (isPaused || flipping || processing ||
+                        itemView.findViewById(R.id.gameImageView).getForeground() == null) {
                     return;
                 }
 
@@ -90,33 +88,20 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
                     return;
                 }
 
-                if (flipping) { return; }
-
                 if (numberOfImagesOpened == 0) {
-                    flipping = true;
                     // Clicked on first image
                     firstImage = itemView.findViewById(R.id.gameImageView);
-                    // Image already matched before, do not do anything
-                    if (firstImage.getForeground() == null) {
-                        return;
-                    }
                     // Reveal image
                     flipCard(firstImage);
                     firstImageId = gameImages.get(position).getId();
                     numberOfImagesOpened = 1;
-
                 } else if (numberOfImagesOpened == 1) {
-                    flipping = true;
                     // Clicked on second image
                     secondImage = itemView.findViewById(R.id.gameImageView);
-                    // Image already matched before, do not do anything
-                    if (secondImage.getForeground() == null) {
-                        return;
-                    }
                     // Reveal image
                     flipCard(secondImage);
                     secondImageId = gameImages.get(position).getId();
-
+                    processing = true;
                     if (firstImageId == secondImageId) {
                         // Images matched
                         updateScore();
@@ -127,10 +112,6 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
                             winGameText();
                             // Sound effect for winning
                             playSound(R.raw.win_audio);
-                            //Save high scores
-                            String score = convertTime(timerSeconds);
-                            strHighscores.add(score);
-                            saveArray(strHighscores);
                             returnToMainActivityAfterFourSeconds();
                         } else {
                             // Game not yet end
@@ -146,7 +127,7 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
                         playSound(R.raw.failure_beep);
                         closeBothImagesAfterTwoSeconds();
                     }
-
+                    processing = false;
                     numberOfImagesOpened = 0;
                 }
             }
@@ -163,11 +144,30 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     public void playSound(int soundId) {
-        MediaPlayer mp = MediaPlayer.create(getApplicationContext(), soundId);
-        mp.start();
+        if (mediaPlayer == null) {
+            mediaPlayer = MediaPlayer.create(getApplicationContext(), soundId);
+            mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                @Override
+                public void onCompletion(MediaPlayer mp) {
+                    mp.reset();
+                    mediaPlayer = null;
+                }
+            });
+            mediaPlayer.start();
+        } else {
+            MediaPlayer extraMediaPlayer = MediaPlayer.create(getApplicationContext(), soundId);
+            extraMediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                @Override
+                public void onCompletion(MediaPlayer mp) {
+                    mp.release();
+                }
+            });
+            extraMediaPlayer.start();
+        }
     }
 
     public void flipCard(View v) {
+        flipping = true;
         if (v.getForeground() != null) {
             v.animate().withLayer().rotationY(90).setDuration(300).withEndAction(
                     new Runnable() {
@@ -227,10 +227,7 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
             public void run() {
                 flipCard(firstImage);
                 flipCard(secondImage);
-                /*firstImage.setForeground(new ColorDrawable(
-                        ContextCompat.getColor(GameActivity.this, R.color.teal_200)));
-                secondImage.setForeground(new ColorDrawable(
-                        ContextCompat.getColor(GameActivity.this, R.color.teal_200)));*/
+
                 wrongImagePairIsStillOpen = false;
                 selectImageText();
             }
@@ -297,47 +294,13 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
+                SharedPreferences preferences = getSharedPreferences("HS_PREF", Activity.MODE_PRIVATE);
+                SharedPreferences.Editor editor = preferences.edit();
+                editor.putInt("currentTime", timerSeconds);
+                editor.apply();
+                mediaPlayer.release();
                 finish();
             }
         }, 4000);
-    }
-
-    public void saveArray(List<String> highscoreList){
-        String highscoreString = "";
-        SharedPreferences sp = this.getSharedPreferences("HIGHSCORE", Activity.MODE_PRIVATE);
-        SharedPreferences.Editor mEdit1 = sp.edit();
-        if(highscoreList != null){
-            Collections.sort(highscoreList);
-            if(highscoreList.size() > 5){
-                for(int i = 0; i < highscoreList.size()-5; i++)
-                {
-                    highscoreList.remove(5);
-                }
-            }
-            highscoreString = String.join(",", highscoreList);
-            mEdit1.putString("highscoreString",highscoreString);
-            mEdit1.apply();
-        }
-    }
-
-    public List<String> getArray(){
-        ;
-        SharedPreferences sp = this.getSharedPreferences("HIGHSCORE", Activity.MODE_PRIVATE);
-        String highscoreString = sp.getString("highscoreString","");
-        if (highscoreString == ""){
-            return new ArrayList<String>();
-        }
-        else{
-            List<String> highscoreList = new ArrayList<String>(Arrays.asList(highscoreString.split(",")));
-            return highscoreList;}
-    }
-
-    public String convertTime(Integer intTime){
-        int hours = intTime / 3600;
-        int minutes = (intTime % 3600) / 60;
-        int seconds = intTime % 60;
-        String score = String.format(Locale.getDefault(), "%02d:%02d:%02d",
-                hours, minutes, seconds);
-        return score;
     }
 }
