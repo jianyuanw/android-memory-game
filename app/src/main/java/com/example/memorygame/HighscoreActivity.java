@@ -26,26 +26,7 @@ public class HighscoreActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_highscore);
 
-        SharedPreferences preferences = getSharedPreferences("HS_PREF", Activity.MODE_PRIVATE);
-        int currentScore =  preferences.getInt("currentTime", 0);
-        String scoreToAdd = convertTime(currentScore);
         strHighscores = getArray();
-
-        if(currentScore !=0){
-            strHighscores.add(scoreToAdd);
-            preferences.edit().remove("currentTime").apply();
-        }
-        if(strHighscores != null){
-            Collections.sort(strHighscores);
-
-            if(strHighscores.size() > 5){
-                for(int i = 0; i < strHighscores.size()-5; i++)
-                {
-                    strHighscores.remove(5);
-                }
-            }
-
-            saveArray(strHighscores);
 
             TextView highscore1 = (TextView)findViewById(R.id.highscore1);
             TextView highscore2 = (TextView)findViewById(R.id.highscore2);
@@ -59,7 +40,7 @@ public class HighscoreActivity extends AppCompatActivity {
             }
         }
 
-    }
+
 
     public String convertTime(Integer intTime){
         int hours = intTime / 3600;
@@ -91,21 +72,3 @@ public class HighscoreActivity extends AppCompatActivity {
         return highscoreList;}
     }
 }
-
-   /* public ArrayList<String> getArray() {
-        SharedPreferences sp = this.getSharedPreferences("HIGHSCORE", Activity.MODE_PRIVATE);
-
-        //NOTE: if shared preference is null, the method return empty Hashset and not null
-        Set<String> set = sp.getStringSet("list", new HashSet<String>());
-
-        return new ArrayList<String>(set);
-    }
-
-    public void saveArray() {
-        SharedPreferences sp = this.getSharedPreferences("HIGHSCORE", Activity.MODE_PRIVATE);
-        SharedPreferences.Editor mEdit1 = sp.edit();
-        Set<String> set = new HashSet<String>();
-        set.addAll(strHighscores);
-        mEdit1.putStringSet("list", set);
-        mEdit1.apply();
-    }*/
