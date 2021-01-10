@@ -34,14 +34,18 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, ListItemClickListener {
 
@@ -211,9 +215,46 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+    private ArrayList<String> extractAllImgSrcFromUrl(String urlString) throws IOException {
+        URL url = new URL(urlString);
+
+        // Act like browser to prevent 403 error response
+        URLConnection urlConnection = url.openConnection();
+        urlConnection.addRequestProperty("User-Agent", "Mozilla");
+        urlConnection.setReadTimeout(5000);
+        urlConnection.setConnectTimeout(5000);
+
+        // Grab html source
+        // Store in string
+        BufferedReader in = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
+        String line;
+        StringBuilder html = new StringBuilder();
+        while ((line = in.readLine()) != null) {
+            html.append(line);
+        }
+        in.close();
+
+        // Extract all src attributes with .jp(e)g or .png
+        ArrayList<String> allSrc = new ArrayList<>();
+        String relativeImgPrefix = url.getProtocol() + "://" + url.getAuthority();
+        Pattern srcTagPattern = Pattern.compile("src=\"(.*?)(.jpe?g|.png)(.*?)\"");
+        Matcher srcTagMatcher = srcTagPattern.matcher(html.toString());
+        while (srcTagMatcher.find()) {
+            String srcTag = srcTagMatcher.group(0);
+            String src = srcTag.substring(5, srcTag.length() - 1);
+            if (!src.startsWith("http")) {
+                src = relativeImgPrefix + src;
+            }
+            allSrc.add(src);
+        }
+
+        return allSrc;
+    }
+
     private class LoadImagesTask implements Runnable {
         private String url;
-        Elements images;
+//        Elements images;
+        private ArrayList<String> images;
 
         LoadImagesTask(String url) {
             this.url = url;
@@ -233,12 +274,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 startUI();
 
-                if (url.endsWith("/")) {
-                    url = url.substring(0, url.length() - 1);
-                }
+//                if (url.endsWith("/")) {
+//                    url = url.substring(0, url.length() - 1);
+//                }
 
-                Document doc = Jsoup.connect(url).get();
-                images = doc.select("img[src~=(?i).(gif|png|jpe?g)]");
+//                Document doc = Jsoup.connect(url).get();
+//                images = doc.select("img[src~=(?i).(gif|png|jpe?g)]");
+
+                images = extractAllImgSrcFromUrl(url);
 
                 String fetchPreference = sharedPreferences.getString("fetch", "All");
 
@@ -254,12 +297,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         concludeUI(false);
                         break;
                     }
-                    Element e = images.get(i);
-
-                    String sourceAttribute = e.attr("src");
-                    if (!sourceAttribute.startsWith("http")) {
-                        sourceAttribute = url + sourceAttribute;
-                    }
+//                    Element e = images.get(i);
+//
+//                    String sourceAttribute = e.attr("src");
+//                    if (!sourceAttribute.startsWith("http")) {
+//                        sourceAttribute = url + sourceAttribute;
+//                    }
+                    String sourceAttribute = images.get(i);
                     updateUI(i + 1, sourceAttribute);
                     Log.e("LOADIMAGE", sourceAttribute);
 
@@ -456,7 +500,5 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
             });
         }
-
-
     }
 }
