@@ -22,6 +22,12 @@
     <string name="pause_buttontext">Pause</string>
     <string name="paused_text">PAUSED</string>
 
+    <string name="highscore_first">1ST</string>
+    <string name="highscore_second">2ND</string>
+    <string name="highscore_third">3RD</string>
+    <string name="highscore_fourth">4TH</string>
+    <string name="highscore_fifth">5TH</string>
+
     <string-array name="fetch_choices">
         <item>All</item>
         <item>6</item>

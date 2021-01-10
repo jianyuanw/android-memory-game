@@ -19,7 +19,7 @@ import java.util.Set;
 
 public class HighscoreActivity extends AppCompatActivity {
 
-    List<String> strHighscores = new ArrayList<String>();
+    List<String> strHighscores = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,15 +28,15 @@ public class HighscoreActivity extends AppCompatActivity {
 
         strHighscores = getArray();
 
-            TextView highscore1 = (TextView)findViewById(R.id.highscore1);
-            TextView highscore2 = (TextView)findViewById(R.id.highscore2);
-            TextView highscore3 = (TextView)findViewById(R.id.highscore3);
-            TextView highscore4 = (TextView)findViewById(R.id.highscore4);
-            TextView highscore5 = (TextView)findViewById(R.id.highscore5);
+            TextView highscore1 = findViewById(R.id.highscore1);
+            TextView highscore2 = findViewById(R.id.highscore2);
+            TextView highscore3 = findViewById(R.id.highscore3);
+            TextView highscore4 = findViewById(R.id.highscore4);
+            TextView highscore5 = findViewById(R.id.highscore5);
 
-            TextView[] highscores = {highscore1,highscore2,highscore3,highscore4,highscore5};
+            TextView[] highscores = {highscore1, highscore2, highscore3, highscore4, highscore5};
             for(int i = 0; i < strHighscores.size(); i++) {
-                highscores[i].setText(strHighscores.get(i));
+                highscores[i].setText(String.format(Locale.ENGLISH, "%s %s", highscores[i].getText(), strHighscores.get(i)));
             }
         }
         
