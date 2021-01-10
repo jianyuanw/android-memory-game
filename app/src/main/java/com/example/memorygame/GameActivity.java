@@ -22,6 +22,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
@@ -51,7 +52,7 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
     private TextView pauseForeground;
     private String infoText;
 
-    private List<String> strHighscores = new ArrayList<String>();
+    private List<String> strHighscores = new ArrayList<>();
   
     private MediaPlayer mediaPlayer;
 
@@ -116,14 +117,23 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
                         if (score == maxScore) {
                             // Game ended
                             stopTimer();
-                            winGameText();
-                            // Sound effect for winning
-                            playSound(R.raw.win_audio);
+
                             //Save high scores
+                            if (strHighscores.size() < 5 || timerSeconds < convertTime(strHighscores.get(4))) {
+                                // Sound effect for highscore
+                                playSound(R.raw.game_highscore);
+                                highScoreText();
+                                String score = convertTime(timerSeconds);
+                                strHighscores.add(score);
+                                saveArray(strHighscores);
+                            } else {
+                                // Sound effect for winning
+                                playSound(R.raw.win_audio);
+                                winGameText();
+                            }
+
+                            // Releases MediaPlayer resource
                             mediaPlayer.release();
-                            String score = convertTime(timerSeconds);
-                            strHighscores.add(score);
-                            saveArray(strHighscores);
                             returnToMainActivityAfterFourSeconds();
                         } else {
                             // Game not yet end
@@ -297,6 +307,11 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         infoTextView.setText(infoText);
     }
 
+    private void highScoreText() {
+        infoText = "Congrats! It's a high score!\nGoing back to main page...";
+        infoTextView.setText(infoText);
+    }
+
     private void waitToast() {
         Toast.makeText(this, "Please wait for wrong image pair to close.",
                 Toast.LENGTH_SHORT).show();
@@ -311,34 +326,31 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         }, 4000);
     }
 
-    public void saveArray(List<String> highscoreList){
+    public void saveArray(List<String> highscoreList) {
         String highscoreString = "";
         SharedPreferences sp = this.getSharedPreferences("HIGHSCORE", Activity.MODE_PRIVATE);
         SharedPreferences.Editor mEdit1 = sp.edit();
-        if(highscoreList != null){
-            Collections.sort(highscoreList);
-            if(highscoreList.size() > 5){
-                for(int i = 0; i < highscoreList.size()-5; i++)
-                {
-                    highscoreList.remove(5);
-                }
+        if (highscoreList != null) {
+            if (highscoreList.size() > 5) {
+                highscoreList.subList(5, highscoreList.size()).clear();
             }
             highscoreString = String.join(",", highscoreList);
-            mEdit1.putString("highscoreString",highscoreString);
+            mEdit1.putString("highscoreString", highscoreString);
             mEdit1.apply();
         }
     }
 
     public List<String> getArray(){
-        ;
         SharedPreferences sp = this.getSharedPreferences("HIGHSCORE", Activity.MODE_PRIVATE);
         String highscoreString = sp.getString("highscoreString","");
-        if (highscoreString == ""){
-            return new ArrayList<String>();
+        if (highscoreString.equals("")){
+            return new ArrayList<>();
         }
-        else{
-            List<String> highscoreList = new ArrayList<String>(Arrays.asList(highscoreString.split(",")));
-            return highscoreList;}
+        else {
+            ArrayList<String> highScores = new ArrayList<>(Arrays.asList(highscoreString.split(",")));
+            Collections.sort(highScores, (o1, o2) -> convertTime(o1) - convertTime(o2));
+            return highScores;
+        }
     }
 
     public String convertTime(Integer intTime){
@@ -348,5 +360,13 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         String score = String.format(Locale.getDefault(), "%02d:%02d:%02d",
                 hours, minutes, seconds);
         return score;
+    }
+
+    public int convertTime(String strTime) {
+        String[] timeUnits = strTime.split(":");
+        int hours = Integer.parseInt(timeUnits[0]) * 60 * 60;
+        int minutes = Integer.parseInt(timeUnits[1]) * 60;
+        int seconds = Integer.parseInt(timeUnits[2]);
+        return hours + minutes + seconds;
     }
 }

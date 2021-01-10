@@ -15,7 +15,6 @@ import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -323,7 +322,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                     String sourceAttribute = images.get(i);
                     updateUI(i + 1, sourceAttribute);
-                    Log.e("LOADIMAGE", sourceAttribute);
                 }
 
                 concludeUI(true);
