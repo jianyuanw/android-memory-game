@@ -234,18 +234,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
         in.close();
 
-        // Extract all src attributes with .jp(e)g or .png
+        // Extract all src attributes
+        // Filter those containing .jpg .jpeg .png
+        // Append the url prefix for relative image sources
         ArrayList<String> allSrc = new ArrayList<>();
         String relativeImgPrefix = url.getProtocol() + "://" + url.getAuthority();
-        Pattern srcTagPattern = Pattern.compile("src=\"(.*?)(.jpe?g|.png)(.*?)\"");
-        Matcher srcTagMatcher = srcTagPattern.matcher(html.toString());
+        Pattern srcTagPattern = Pattern.compile("src=\"(.*?)\"");
+        Matcher srcTagMatcher = srcTagPattern.matcher(html);
         while (srcTagMatcher.find()) {
             String srcTag = srcTagMatcher.group(0);
-            String src = srcTag.substring(5, srcTag.length() - 1);
-            if (!src.startsWith("http")) {
-                src = relativeImgPrefix + src;
+            if (srcTag.contains(".jpg") || srcTag.contains(".jpeg") || srcTag.contains(".png")) {
+                String src = srcTag.substring(5, srcTag.length() - 1);
+                if (!src.startsWith("http")) {
+                    src = relativeImgPrefix + src;
+                }
+                allSrc.add(src);
             }
-            allSrc.add(src);
         }
 
         return allSrc;
