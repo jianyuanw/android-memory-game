@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -16,6 +17,7 @@ public class BestRecordReader {
     File mTargetRecords;
 
     public BestRecordReader(File mTargetRecords) {
+        sortedBest5 = new ArrayList<>();
         List<Record> allRecords = new ArrayList<>();
         this.mTargetRecords = mTargetRecords;
         try {
@@ -28,15 +30,18 @@ public class BestRecordReader {
                 allRecords.add(new Record(splits[0], Integer.parseInt(splits[1])));
             }
             dis.close();
+            List<Record> sortedRecords = allRecords.stream().sorted(Comparator.comparing(Record::getTime)).collect(Collectors.toList());
+
+            for(int i=0;i<5;i++) {
+                sortedBest5.add(sortedRecords.get(i));
+            }
+        } catch (FileNotFoundException fileNotFoundException) {
+            fileNotFoundException.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        List<Record> sortedRecords = allRecords.stream().sorted(Comparator.comparing(Record::getTime)).collect(Collectors.toList());
-        sortedBest5 = new ArrayList<>();
-        for(int i=0;i<5;i++) {
-            sortedBest5.add(sortedRecords.get(i));
-        }
+
     }
 
     public List<Record> getSortedBest5() {
