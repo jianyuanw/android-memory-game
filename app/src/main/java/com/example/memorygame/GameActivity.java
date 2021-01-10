@@ -2,6 +2,7 @@ package com.example.memorygame;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.graphics.drawable.ColorDrawable;
 import android.media.MediaPlayer;
@@ -10,22 +11,32 @@ import android.os.Handler;
 import android.provider.MediaStore;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+import androidx.appcompat.app.AlertDialog;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
-public class GameActivity extends AppCompatActivity implements View.OnClickListener {
+public class GameActivity extends AppCompatActivity implements View.OnClickListener, NotifyDialogFragment.NotifyDialogListener {
 
     private final int GRID_COLUMNS = 3;
 
@@ -213,7 +224,12 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         int id = v.getId();
 
         if (id == R.id.backButton) {
-            finish();
+            if( isHitBest5()) {
+                askingRecord();
+            }
+            else {
+                finish();
+            }
         } else if (id == R.id.pauseButton) {
             if (isPaused) {
                 isPaused = false;
@@ -348,5 +364,108 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         String score = String.format(Locale.getDefault(), "%02d:%02d:%02d",
                 hours, minutes, seconds);
         return score;
+    }
+
+
+        // check whether hit the best 5
+    private boolean isHitBest5() {
+        String filepath = "RecordFolder";
+        String filename = "Records.txt";
+        mTargetRecords = new File(getFilesDir(), filepath+"/"+filename);
+        BestRecordReader bestRecordReader = new BestRecordReader(mTargetRecords);
+        List<Record> sortedBest5 = bestRecordReader.getSortedBest5();
+        if(sortedBest5.size() >=5 && timerSeconds<sortedBest5.get(4).getTime()) {
+            return true;
+        }
+        else if(sortedBest5.size() < 5) {
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+
+    // Submit record feature
+
+    NotifyDialogFragment.NotifyDialogListener listener;
+    boolean notifyChoice;
+    String userName;
+    private void askingRecord() {
+        NotifyDialogFragment notifyDialogFragment = new NotifyDialogFragment();
+        notifyDialogFragment.show(getSupportFragmentManager(), "notify");
+        notifyDialogFragment.dismiss();
+    }
+
+    @Override
+    public void onDialogPositiveClick(NotifyDialogFragment dialog) {
+        notifyChoice = true;
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Please input your name");
+        final View v = getLayoutInflater().inflate(R.layout.dialog_submit_record,null);
+        builder.setView(v);
+        builder.setPositiveButton("Submit", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                EditText editText = v.findViewById(R.id.username);
+                sendDialogDataToActivity(editText.getText().toString());
+                RecordToAppSpecificInternal(userName, timerSeconds);
+            }
+        });
+        AlertDialog submitDialog = builder.create();
+        submitDialog.show();
+    }
+
+    private void sendDialogDataToActivity(String data) {
+        userName = data;
+    }
+
+    @Override
+    public void onDialogNegativeClick(NotifyDialogFragment dialog) {
+        notifyChoice = false;
+        finish();
+    }
+
+    File mTargetRecords;
+    // update the record file
+    private void RecordToAppSpecificInternal(String userName, int timerSeconds) {
+        String namePlusTime = userName+"+"+timerSeconds+"\r\n";
+        String filepath = "RecordFolder";
+        String filename = "Records.txt";
+        mTargetRecords = new File(getFilesDir(), filepath+"/"+filename);
+        String existedRecord = "";
+        try {
+            FileInputStream fis = new FileInputStream(mTargetRecords);
+            DataInputStream dis = new DataInputStream(fis);
+            BufferedReader br = new BufferedReader(new InputStreamReader(dis));
+            String strLine;
+            while((strLine = br.readLine())!=null){
+                existedRecord = existedRecord + strLine + "\r\n";
+            }
+            dis.close();
+        }catch (FileNotFoundException fileNot) {
+            fileNot.printStackTrace();
+            existedRecord = "";
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                // Make sure that the parent folder exists
+                File parent = mTargetRecords.getParentFile();
+                if(!parent.exists() && !parent.mkdirs()) {
+                    throw new IllegalStateException("Cannot create dir "+parent);
+                }
+                FileOutputStream fos = new FileOutputStream(mTargetRecords);
+                fos.write((existedRecord+namePlusTime).getBytes("utf-8"));
+                fos.close();
+                Toast.makeText(this,userName+"'s record saved!", Toast.LENGTH_SHORT).show();
+            }
+            catch (IOException e) {
+                e.printStackTrace();
+                Toast.makeText(this,"Error occured when saving.", Toast.LENGTH_LONG).show();
+            }
+            finally {
+                finish();
+            }
+        }
     }
 }

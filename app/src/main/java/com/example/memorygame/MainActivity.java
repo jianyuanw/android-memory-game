@@ -6,7 +6,9 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -43,6 +45,7 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
@@ -138,11 +141,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             Intent intent = new Intent(this, SettingsActivity.class);
             startActivity(intent);
         }
-
-        if (id == R.id.highscore) {
-            Intent intent = new Intent(this, HighscoreActivity.class);
-            startActivity(intent);
+        if(id == R.id.best_records){
+            bestRecordDisplayDialog();
         }
+
+
+//        if (id == R.id.highscore) {
+//            Intent intent = new Intent(this, HighscoreActivity.class);
+//            startActivity(intent);
+//        }
 
         return super.onOptionsItemSelected(item);
     }
@@ -526,5 +533,30 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
             });
         }
+    }
+
+    // display the best records with dialog
+
+    File mTargetRecords;
+    private void bestRecordDisplayDialog() {
+        String filepath = "RecordFolder";
+        String filename = "Records.txt";
+        mTargetRecords = new File(getFilesDir(), filepath+"/"+filename);
+        BestRecordReader bestRecordReader = new BestRecordReader(mTargetRecords);
+        List<Record> sortedBest5 = bestRecordReader.getSortedBest5();
+        String message = "";
+        for(int i = 0; i < sortedBest5.size(); i++) {
+            message += sortedBest5.get(i).getName()+"    \t\t"+sortedBest5.get(i).getTime()+"s\n";
+        }
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Best 5 records");
+        builder.setMessage(message);
+        builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+
+            }
+        });
+        builder.create().show();
     }
 }
