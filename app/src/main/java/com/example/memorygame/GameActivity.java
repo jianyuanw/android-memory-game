@@ -1,5 +1,6 @@
 package com.example.memorygame;
 
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.drawable.ColorDrawable;
 import android.media.MediaPlayer;
@@ -39,6 +40,8 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
     private TextView infoTextView;
     private String infoText;
 
+    private SharedPreferences sharedPreferences;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -46,9 +49,11 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
 
         findViewById(R.id.backButton).setOnClickListener(this);
 
+        sharedPreferences = getSharedPreferences("settings", Context.MODE_PRIVATE);
+
         RecyclerView gameRecyclerView = findViewById(R.id.gameRecyclerView);
         gameImages = GameImage.createGameImageList(this);
-        GameImagesAdapter adapter = new GameImagesAdapter(gameImages);
+        GameImagesAdapter adapter = new GameImagesAdapter(gameImages, sharedPreferences.getString("glide", "No").equals("Yes"));
         adapter.setOnItemClickListener(new GameImagesAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(View itemView, int position) {
@@ -243,10 +248,6 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                SharedPreferences preferences = getSharedPreferences("HS_PREF",0);
-                SharedPreferences.Editor editor = preferences.edit();
-                editor.putInt("currentTime", timerSeconds);
-                editor.apply();
                 finish();
             }
         }, 4000);
