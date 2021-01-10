@@ -39,17 +39,7 @@ public class HighscoreActivity extends AppCompatActivity {
                 highscores[i].setText(strHighscores.get(i));
             }
         }
-
-
-
-    public String convertTime(Integer intTime){
-        int hours = intTime / 3600;
-        int minutes = (intTime % 3600) / 60;
-        int seconds = intTime % 60;
-        String score = String.format(Locale.getDefault(), "%02d:%02d:%02d",
-                    hours, minutes, seconds);
-        return score;
-    }
+        
     public void saveArray(List<String> highscoreList){
         String highscoreString = "";
         SharedPreferences sp = this.getSharedPreferences("HIGHSCORE", Activity.MODE_PRIVATE);
