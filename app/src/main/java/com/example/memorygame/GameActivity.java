@@ -7,6 +7,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
+import android.provider.MediaStore;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -34,9 +35,10 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
     private int secondImageId;
     private int score;
     private int maxScore;
+
     private boolean wrongImagePairIsStillOpen;
     private boolean flipping;
-
+    private boolean processing;
     private boolean timerIsRunning;
     private boolean isPaused;
     private int timerSeconds;
@@ -45,6 +47,8 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
     private TextView infoTextView;
     private TextView pauseForeground;
     private String infoText;
+
+    private MediaPlayer mediaPlayer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,7 +78,8 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
                     startTimer();
                 }
 
-                if (isPaused) {
+                if (isPaused || flipping || processing ||
+                        itemView.findViewById(R.id.gameImageView).getForeground() == null) {
                     return;
                 }
 
@@ -83,33 +88,20 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
                     return;
                 }
 
-                if (flipping) { return; }
-
                 if (numberOfImagesOpened == 0) {
-                    flipping = true;
                     // Clicked on first image
                     firstImage = itemView.findViewById(R.id.gameImageView);
-                    // Image already matched before, do not do anything
-                    if (firstImage.getForeground() == null) {
-                        return;
-                    }
                     // Reveal image
                     flipCard(firstImage);
                     firstImageId = gameImages.get(position).getId();
                     numberOfImagesOpened = 1;
-
                 } else if (numberOfImagesOpened == 1) {
-                    flipping = true;
                     // Clicked on second image
                     secondImage = itemView.findViewById(R.id.gameImageView);
-                    // Image already matched before, do not do anything
-                    if (secondImage.getForeground() == null) {
-                        return;
-                    }
                     // Reveal image
                     flipCard(secondImage);
                     secondImageId = gameImages.get(position).getId();
-
+                    processing = true;
                     if (firstImageId == secondImageId) {
                         // Images matched
                         updateScore();
@@ -135,7 +127,7 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
                         playSound(R.raw.failure_beep);
                         closeBothImagesAfterTwoSeconds();
                     }
-
+                    processing = false;
                     numberOfImagesOpened = 0;
                 }
             }
@@ -152,11 +144,30 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     public void playSound(int soundId) {
-        MediaPlayer mp = MediaPlayer.create(getApplicationContext(), soundId);
-        mp.start();
+        if (mediaPlayer == null) {
+            mediaPlayer = MediaPlayer.create(getApplicationContext(), soundId);
+            mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                @Override
+                public void onCompletion(MediaPlayer mp) {
+                    mp.reset();
+                    mediaPlayer = null;
+                }
+            });
+            mediaPlayer.start();
+        } else {
+            MediaPlayer extraMediaPlayer = MediaPlayer.create(getApplicationContext(), soundId);
+            extraMediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                @Override
+                public void onCompletion(MediaPlayer mp) {
+                    mp.release();
+                }
+            });
+            extraMediaPlayer.start();
+        }
     }
 
     public void flipCard(View v) {
+        flipping = true;
         if (v.getForeground() != null) {
             v.animate().withLayer().rotationY(90).setDuration(300).withEndAction(
                     new Runnable() {
@@ -216,10 +227,7 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
             public void run() {
                 flipCard(firstImage);
                 flipCard(secondImage);
-                /*firstImage.setForeground(new ColorDrawable(
-                        ContextCompat.getColor(GameActivity.this, R.color.teal_200)));
-                secondImage.setForeground(new ColorDrawable(
-                        ContextCompat.getColor(GameActivity.this, R.color.teal_200)));*/
+
                 wrongImagePairIsStillOpen = false;
                 selectImageText();
             }
@@ -290,6 +298,7 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
                 SharedPreferences.Editor editor = preferences.edit();
                 editor.putInt("currentTime", timerSeconds);
                 editor.apply();
+                mediaPlayer.release();
                 finish();
             }
         }, 4000);
