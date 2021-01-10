@@ -3,7 +3,10 @@ package com.example.memorygame;
 import android.app.Activity;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -38,6 +41,18 @@ public class HighscoreActivity extends AppCompatActivity {
             for(int i = 0; i < strHighscores.size(); i++) {
                 highscores[i].setText(String.format(Locale.ENGLISH, "%s %s", highscores[i].getText(), strHighscores.get(i)));
             }
+
+            final Button button = findViewById(R.id.resetButton);
+            button.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    for(int i = 0; i < strHighscores.size(); i++){
+                        highscores[i].setText("");
+                    }
+                    saveArray(new ArrayList<>());
+                    Toast.makeText(getApplicationContext(), "Scores reset successfully!", Toast.LENGTH_SHORT).show();
+                }
+            });
         }
         
     public void saveArray(List<String> highscoreList){
