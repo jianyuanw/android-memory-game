@@ -20,6 +20,9 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
 
 public class GameActivity extends AppCompatActivity implements View.OnClickListener {
@@ -48,12 +51,16 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
     private TextView pauseForeground;
     private String infoText;
 
+    private List<String> strHighscores = new ArrayList<String>();
+  
     private MediaPlayer mediaPlayer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
+
+        strHighscores = getArray();
 
         findViewById(R.id.backButton).setOnClickListener(this);
 
@@ -112,6 +119,10 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
                             winGameText();
                             // Sound effect for winning
                             playSound(R.raw.win_audio);
+                            //Save high scores
+                            String score = convertTime(timerSeconds);
+                            strHighscores.add(score);
+                            saveArray(strHighscores);
                             returnToMainActivityAfterFourSeconds();
                         } else {
                             // Game not yet end
@@ -294,13 +305,48 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                SharedPreferences preferences = getSharedPreferences("HS_PREF", Activity.MODE_PRIVATE);
-                SharedPreferences.Editor editor = preferences.edit();
-                editor.putInt("currentTime", timerSeconds);
-                editor.apply();
                 mediaPlayer.release();
                 finish();
             }
         }, 4000);
+    }
+
+    public void saveArray(List<String> highscoreList){
+        String highscoreString = "";
+        SharedPreferences sp = this.getSharedPreferences("HIGHSCORE", Activity.MODE_PRIVATE);
+        SharedPreferences.Editor mEdit1 = sp.edit();
+        if(highscoreList != null){
+            Collections.sort(highscoreList);
+            if(highscoreList.size() > 5){
+                for(int i = 0; i < highscoreList.size()-5; i++)
+                {
+                    highscoreList.remove(5);
+                }
+            }
+            highscoreString = String.join(",", highscoreList);
+            mEdit1.putString("highscoreString",highscoreString);
+            mEdit1.apply();
+        }
+    }
+
+    public List<String> getArray(){
+        ;
+        SharedPreferences sp = this.getSharedPreferences("HIGHSCORE", Activity.MODE_PRIVATE);
+        String highscoreString = sp.getString("highscoreString","");
+        if (highscoreString == ""){
+            return new ArrayList<String>();
+        }
+        else{
+            List<String> highscoreList = new ArrayList<String>(Arrays.asList(highscoreString.split(",")));
+            return highscoreList;}
+    }
+
+    public String convertTime(Integer intTime){
+        int hours = intTime / 3600;
+        int minutes = (intTime % 3600) / 60;
+        int seconds = intTime % 60;
+        String score = String.format(Locale.getDefault(), "%02d:%02d:%02d",
+                hours, minutes, seconds);
+        return score;
     }
 }
