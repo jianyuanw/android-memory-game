@@ -217,7 +217,7 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         int id = v.getId();
 
         if (id == R.id.backButton) {
-            if( isHitBest5()) {
+            if( score == maxScore && isHitBest5()) {
                 askingRecord();
             }
             else {
