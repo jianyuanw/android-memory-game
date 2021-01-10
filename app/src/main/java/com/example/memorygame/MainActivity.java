@@ -80,6 +80,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         helpText = findViewById(R.id.helpText);
 
+        findViewById(R.id.scrollText).setSelected(true);
+
         // Initializing autocomplete for editText
         input = findViewById(R.id.textInputEditText);
         String[] websites = getResources().getStringArray(R.array.suggested_urls);
@@ -126,26 +128,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
+        // Interrupt before switching to menu
+        if (imageProcess != null) {
+            imageProcess.interrupt();
+        }
+
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
-            // Interrupt before switching to menu
-            if (imageProcess != null) {
-                imageProcess.interrupt();
-            }
-
             Intent intent = new Intent(this, SettingsActivity.class);
-
             startActivity(intent);
         }
 
         if (id == R.id.highscore) {
-            // Interrupt before switching to menu
-            if (imageProcess != null) {
-                imageProcess.interrupt();
-            }
-
             Intent intent = new Intent(this, HighscoreActivity.class);
-
             startActivity(intent);
         }
 
