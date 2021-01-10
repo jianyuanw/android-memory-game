@@ -12,9 +12,22 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 
+import com.bumptech.glide.Glide;
+
 import java.util.List;
 
 public class GameImagesAdapter extends RecyclerView.Adapter<GameImagesAdapter.ViewHolder> {
+    private boolean useGlide;
+    private List<GameImage> gameImages;
+
+    public GameImagesAdapter(List<GameImage> gameImages, boolean useGlide) {
+        this.gameImages = gameImages;
+        this.useGlide = useGlide;
+    }
+
+    public GameImagesAdapter(boolean useGlide) {
+        this.useGlide = useGlide;
+    }
 
     public interface OnItemClickListener {
         void onItemClick(View itemView, int position);
@@ -46,12 +59,6 @@ public class GameImagesAdapter extends RecyclerView.Adapter<GameImagesAdapter.Vi
         }
     }
 
-    private List<GameImage> gameImages;
-
-    public GameImagesAdapter(List<GameImage> gameImages) {
-        this.gameImages = gameImages;
-    }
-
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -64,10 +71,15 @@ public class GameImagesAdapter extends RecyclerView.Adapter<GameImagesAdapter.Vi
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         GameImage gameImage = gameImages.get(position);
-        Bitmap bitmap = BitmapFactory.decodeFile(gameImage.getFilePath());
-
         ImageView gameImageView = holder.gameImageView;
-        gameImageView.setImageBitmap(bitmap);
+
+        if (useGlide) {
+            Glide.with(gameImageView.getContext()).load(gameImage.getFilePath()).into(gameImageView);
+        } else {
+            Bitmap bitmap = BitmapFactory.decodeFile(gameImage.getFilePath());
+            gameImageView.setImageBitmap(bitmap);
+        }
+
     }
 
     @Override

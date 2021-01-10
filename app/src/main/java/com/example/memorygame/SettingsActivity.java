@@ -15,6 +15,8 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
 
     Spinner spinner;
     Spinner spinner2;
+    Spinner spinner3;
+    Spinner spinner4;
     Button saveButton;
     Button defaultButton;
     SharedPreferences sharedPreferences;
@@ -33,25 +35,28 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
         defaultButton.setOnClickListener(this);
 
         spinner = findViewById(R.id.spinner);
+        initializeSpinner(spinner, R.array.fetch_choices, "fetch");
+
+        spinner2 = findViewById(R.id.spinner2);
+        initializeSpinner(spinner2, R.array.grid_choices, "grid");
+
+        spinner3 = findViewById(R.id.spinner3);
+        initializeSpinner(spinner3, R.array.glide_choices, "glide");
+
+        spinner4 = findViewById(R.id.spinner4);
+        initializeSpinner(spinner4, R.array.jsoup_choices, "jsoup");
+    }
+
+    public void initializeSpinner(Spinner spinner, int choicesId, String preferenceKey) {
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
-                R.array.fetch_choices, android.R.layout.simple_spinner_item);
+                choicesId, android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(adapter);
 
-        spinner2 = findViewById(R.id.spinner2);
-        ArrayAdapter<CharSequence> adapter2 = ArrayAdapter.createFromResource(this,
-                R.array.grid_choices, android.R.layout.simple_spinner_item);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinner2.setAdapter(adapter2);
+        String preference = sharedPreferences.getString(preferenceKey, null);
 
-        String fetchPreference = sharedPreferences.getString("fetch", null);
-        String gridPreference = sharedPreferences.getString("grid", null);
-
-        if (fetchPreference != null) {
-            spinner.setSelection(adapter.getPosition(fetchPreference));
-        }
-        if (gridPreference != null) {
-            spinner2.setSelection(adapter2.getPosition(gridPreference));
+        if (preference != null) {
+            spinner.setSelection(adapter.getPosition(preference));
         }
     }
 
@@ -62,6 +67,8 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
             SharedPreferences.Editor editor = sharedPreferences.edit();
             editor.putString("fetch", spinner.getSelectedItem().toString());
             editor.putString("grid", spinner2.getSelectedItem().toString());
+            editor.putString("glide", spinner3.getSelectedItem().toString());
+            editor.putString("jsoup", spinner4.getSelectedItem().toString());
             editor.apply();
             Toast.makeText(this, "Changes saved!", Toast.LENGTH_SHORT).show();
             finish();
@@ -69,6 +76,8 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
             SharedPreferences.Editor editor = sharedPreferences.edit();
             editor.remove("fetch");
             editor.remove("grid");
+            editor.remove("glide");
+            editor.remove("jsoup");
             editor.apply();
             Toast.makeText(this, "Settings defaulted!", Toast.LENGTH_SHORT).show();
             finish();

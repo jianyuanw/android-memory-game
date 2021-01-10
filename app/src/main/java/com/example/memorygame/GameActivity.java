@@ -1,5 +1,7 @@
 package com.example.memorygame;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.drawable.ColorDrawable;
 import android.media.MediaPlayer;
 import android.os.Bundle;
@@ -38,6 +40,8 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
     private TextView infoTextView;
     private String infoText;
 
+    private SharedPreferences sharedPreferences;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,9 +49,11 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
 
         findViewById(R.id.backButton).setOnClickListener(this);
 
+        sharedPreferences = getSharedPreferences("settings", Context.MODE_PRIVATE);
+
         RecyclerView gameRecyclerView = findViewById(R.id.gameRecyclerView);
         gameImages = GameImage.createGameImageList(this);
-        GameImagesAdapter adapter = new GameImagesAdapter(gameImages);
+        GameImagesAdapter adapter = new GameImagesAdapter(gameImages, sharedPreferences.getString("glide", "No").equals("Yes"));
         adapter.setOnItemClickListener(new GameImagesAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(View itemView, int position) {
