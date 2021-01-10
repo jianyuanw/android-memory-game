@@ -27,6 +27,7 @@
     <string name="highscore_third">3RD</string>
     <string name="highscore_fourth">4TH</string>
     <string name="highscore_fifth">5TH</string>
+    <string name = "reset_button">Reset Scores</string>
 
     <string-array name="fetch_choices">
         <item>All</item>
