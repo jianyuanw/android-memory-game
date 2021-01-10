@@ -140,6 +140,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             startActivity(intent);
         }
 
+        if (id == R.id.highscore) {
+            // Interrupt before switching to menu
+            if (imageProcess != null) {
+                imageProcess.interrupt();
+            }
+
+            Intent intent = new Intent(this, HighscoreActivity.class);
+
+            startActivity(intent);
+        }
+
         return super.onOptionsItemSelected(item);
     }
 
