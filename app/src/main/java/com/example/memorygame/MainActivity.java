@@ -454,34 +454,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         }
 
-        // TODO: Remove this if not necessary
-        /*public boolean download(String downloadUrl, String filename) {
-            File dir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-            File file = new File(dir, filename);
-
-            try {
-                URL url = new URL(downloadUrl);
-                URLConnection conn = url.openConnection();
-
-                InputStream in = conn.getInputStream();
-                FileOutputStream out = new FileOutputStream(file);
-
-                byte[] buf = new byte[1024];
-                int bytesRead;
-                while ((bytesRead = in.read(buf)) != -1) {
-                    out.write(buf, 0, bytesRead);
-                }
-
-                out.close();
-                in.close();
-                return true;
-
-            } catch (IOException e) {
-                e.printStackTrace();
-                return false;
-            }
-        }*/
-
         private void startUI() {
             mHandler.post(new Runnable() {
                 @Override

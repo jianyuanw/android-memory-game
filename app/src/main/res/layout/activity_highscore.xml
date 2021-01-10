@@ -8,15 +8,36 @@
     tools:context=".HighscoreActivity">
 
     <TextView
+        android:id="@+id/highscoreLabel1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="24dp"
+        android:textSize="20sp"
+        android:text="@string/highscore_first"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
         android:id="@+id/highscore1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="84dp"
         android:layout_marginTop="24dp"
-        android:text="Highscore1"
         android:textSize="20sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/highscoreLabel2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="28dp"
+        android:textSize="20sp"
+        android:text="@string/highscore_second"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/highscoreLabel1" />
 
     <TextView
         android:id="@+id/highscore2"
@@ -24,10 +45,20 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="84dp"
         android:layout_marginTop="28dp"
-        android:text="Highscore2"
         android:textSize="20sp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/highscore1" />
+        app:layout_constraintTop_toBottomOf="@id/highscore1" />
+
+    <TextView
+        android:id="@+id/highscoreLabel3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="28dp"
+        android:textSize="20sp"
+        android:text="@string/highscore_third"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/highscoreLabel2" />
 
     <TextView
         android:id="@+id/highscore3"
@@ -35,10 +66,20 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="84dp"
         android:layout_marginTop="28dp"
-        android:text="Highscore3"
         android:textSize="20sp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/highscore2" />
+        app:layout_constraintTop_toBottomOf="@id/highscore2" />
+
+    <TextView
+        android:id="@+id/highscoreLabel4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="28dp"
+        android:textSize="20sp"
+        android:text="@string/highscore_fourth"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/highscoreLabel3" />
 
     <TextView
         android:id="@+id/highscore4"
@@ -46,10 +87,20 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="84dp"
         android:layout_marginTop="28dp"
-        android:text="Highscore4"
         android:textSize="20sp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/highscore3" />
+        app:layout_constraintTop_toBottomOf="@id/highscore3" />
+
+    <TextView
+        android:id="@+id/highscoreLabel5"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="28dp"
+        android:textSize="20sp"
+        android:text="@string/highscore_fifth"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/highscoreLabel4" />
 
     <TextView
         android:id="@+id/highscore5"
@@ -57,7 +108,6 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="84dp"
         android:layout_marginTop="28dp"
-        android:text="Highscore5"
         android:textSize="20sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/highscore4" />

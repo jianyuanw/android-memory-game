@@ -120,6 +120,7 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
                             // Sound effect for winning
                             playSound(R.raw.win_audio);
                             //Save high scores
+                            mediaPlayer.release();
                             String score = convertTime(timerSeconds);
                             strHighscores.add(score);
                             saveArray(strHighscores);
@@ -305,7 +306,6 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                mediaPlayer.release();
                 finish();
             }
         }, 4000);
