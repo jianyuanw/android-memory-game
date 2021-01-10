@@ -56,11 +56,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     Handler mHandler = new Handler();
     AutoCompleteTextView input;
     SharedPreferences sharedPreferences;
+    private TextView mTv1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        Intent intent = new Intent(MainActivity.this,MusicServer.class);
+        startService(intent);
+
+
+
+        mTv1 = findViewById(R.id.tv_1);
+        mTv1.setSelected(true);
 
         sharedPreferences = getSharedPreferences("settings", Context.MODE_PRIVATE);
         int gridPreferences = Integer.parseInt(sharedPreferences.getString("grid", "3"));
@@ -91,6 +99,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     }
 
+    protected void onStop(){
+        Intent intent = new Intent(MainActivity.this,MusicServer.class);
+        stopService(intent);
+        super.onStop();
+
+    }
     @Override
     protected void onStart() {
         super.onStart();
@@ -458,5 +472,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
 
+
     }
+
 }
