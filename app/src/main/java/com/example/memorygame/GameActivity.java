@@ -297,10 +297,6 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                SharedPreferences preferences = getSharedPreferences("HS_PREF", Activity.MODE_PRIVATE);
-                SharedPreferences.Editor editor = preferences.edit();
-                editor.putInt("currentTime", timerSeconds);
-                editor.apply();
                 finish();
             }
         }, 4000);
