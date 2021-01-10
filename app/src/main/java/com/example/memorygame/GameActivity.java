@@ -5,6 +5,7 @@ import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -38,15 +39,25 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
     private TextView infoTextView;
     private String infoText;
 
+    private Button stopStartBtn;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
 
         findViewById(R.id.backButton).setOnClickListener(this);
+        stopStartBtn = findViewById(R.id.pauseButton);
+        stopStartBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                stopTimer();
+            }
+        });
 
         RecyclerView gameRecyclerView = findViewById(R.id.gameRecyclerView);
         gameImages = GameImage.createGameImageList(this);
+        stopStartBtn = findViewById(R.id.pauseButton);
         GameImagesAdapter adapter = new GameImagesAdapter(gameImages);
         adapter.setOnItemClickListener(new GameImagesAdapter.OnItemClickListener() {
             @Override
@@ -209,9 +220,12 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         });
     }
 
+
     private void stopTimer() {
         timerIsRunning = false;
     }
+
+
 
     private void didNotMatchText() {
         infoText = "Wrong! Closing images...";
