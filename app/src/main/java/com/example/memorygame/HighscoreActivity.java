@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import org.w3c.dom.Text;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -25,13 +26,14 @@ public class HighscoreActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_highscore);
 
-        SharedPreferences preferences = getSharedPreferences("HS_PREF", 0);
+        SharedPreferences preferences = getSharedPreferences("HS_PREF", Activity.MODE_PRIVATE);
         int currentScore =  preferences.getInt("currentTime", 0);
         String scoreToAdd = convertTime(currentScore);
         strHighscores = getArray();
 
         if(currentScore !=0){
             strHighscores.add(scoreToAdd);
+            preferences.edit().remove("currentTime").apply();
         }
         if(strHighscores != null){
             Collections.sort(strHighscores);
@@ -43,7 +45,7 @@ public class HighscoreActivity extends AppCompatActivity {
                 }
             }
 
-            saveArray();
+            saveArray(strHighscores);
 
             TextView highscore1 = (TextView)findViewById(R.id.highscore1);
             TextView highscore2 = (TextView)findViewById(R.id.highscore2);
@@ -51,35 +53,10 @@ public class HighscoreActivity extends AppCompatActivity {
             TextView highscore4 = (TextView)findViewById(R.id.highscore4);
             TextView highscore5 = (TextView)findViewById(R.id.highscore5);
 
-            int scoreId = strHighscores.size();
-            switch(scoreId){
-                case 1:
-                    highscore1.setText(strHighscores.get(0));
-                    break;
-                case 2:
-                    highscore1.setText(strHighscores.get(0));
-                    highscore2.setText(strHighscores.get(1));
-                    break;
-                case 3:
-                    highscore1.setText(strHighscores.get(0));
-                    highscore2.setText(strHighscores.get(1));
-                    highscore3.setText(strHighscores.get(2));
-                    break;
-                case 4:
-                    highscore1.setText(strHighscores.get(0));
-                    highscore2.setText(strHighscores.get(1));
-                    highscore3.setText(strHighscores.get(2));
-                    highscore4.setText(strHighscores.get(3));
-                    break;
-                case 5:
-                    highscore1.setText(strHighscores.get(0));
-                    highscore2.setText(strHighscores.get(1));
-                    highscore3.setText(strHighscores.get(2));
-                    highscore4.setText(strHighscores.get(3));
-                    highscore5.setText(strHighscores.get(4));
-                    break;
+            TextView[] highscores = {highscore1,highscore2,highscore3,highscore4,highscore5};
+            for(int i = 0; i < strHighscores.size(); i++) {
+                highscores[i].setText(strHighscores.get(i));
             }
-
         }
 
     }
@@ -92,8 +69,30 @@ public class HighscoreActivity extends AppCompatActivity {
                     hours, minutes, seconds);
         return score;
     }
+    public void saveArray(List<String> highscoreList){
+        String highscoreString = "";
+        SharedPreferences sp = this.getSharedPreferences("HIGHSCORE", Activity.MODE_PRIVATE);
+        SharedPreferences.Editor mEdit1 = sp.edit();
+        if(highscoreList != null){
+            highscoreString = String.join(",", highscoreList);
+            mEdit1.putString("highscoreString",highscoreString);
+            mEdit1.apply();
+            }
+        }
+    public List<String> getArray(){
+        ;
+        SharedPreferences sp = this.getSharedPreferences("HIGHSCORE", Activity.MODE_PRIVATE);
+        String highscoreString = sp.getString("highscoreString","");
+        if (highscoreString == ""){
+            return new ArrayList<String>();
+        }
+        else{
+            List<String> highscoreList = new ArrayList<String>(Arrays.asList(highscoreString.split(",")));
+        return highscoreList;}
+    }
+}
 
-    public ArrayList<String> getArray() {
+   /* public ArrayList<String> getArray() {
         SharedPreferences sp = this.getSharedPreferences("HIGHSCORE", Activity.MODE_PRIVATE);
 
         //NOTE: if shared preference is null, the method return empty Hashset and not null
@@ -102,13 +101,11 @@ public class HighscoreActivity extends AppCompatActivity {
         return new ArrayList<String>(set);
     }
 
-    public boolean saveArray() {
+    public void saveArray() {
         SharedPreferences sp = this.getSharedPreferences("HIGHSCORE", Activity.MODE_PRIVATE);
         SharedPreferences.Editor mEdit1 = sp.edit();
         Set<String> set = new HashSet<String>();
         set.addAll(strHighscores);
         mEdit1.putStringSet("list", set);
-        return mEdit1.commit();
-    }
-}
-
+        mEdit1.apply();
+    }*/
