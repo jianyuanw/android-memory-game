@@ -32,7 +32,7 @@ public class BestRecordReader {
             dis.close();
             List<Record> sortedRecords = allRecords.stream().sorted(Comparator.comparing(Record::getTime)).collect(Collectors.toList());
 
-            for(int i=0;i<5;i++) {
+            for(int i=0;i<5 && i<sortedRecords.size(); i++) {
                 sortedBest5.add(sortedRecords.get(i));
             }
         } catch (FileNotFoundException fileNotFoundException) {
@@ -40,8 +40,9 @@ public class BestRecordReader {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        finally {
 
-
+        }
     }
 
     public List<Record> getSortedBest5() {
