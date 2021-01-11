@@ -55,6 +55,7 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
     private List<String> strHighscores = new ArrayList<>();
   
     private MediaPlayer mediaPlayer;
+    private ArrayList<MediaPlayer> mediaPlayers;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,6 +72,8 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         pauseForeground = findViewById(R.id.pauseForeground);
 
         SharedPreferences sharedPreferences = getSharedPreferences("settings", Context.MODE_PRIVATE);
+
+        mediaPlayers = new ArrayList<>();
 
         RecyclerView gameRecyclerView = findViewById(R.id.gameRecyclerView);
         gameImages = GameImage.createGameImageList(this);
@@ -117,6 +120,7 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
                         if (score == maxScore) {
                             // Game ended
                             stopTimer();
+                            pauseButton.setEnabled(false);
                             //Save high scores
                             if (strHighscores.size() < 5 || timerSeconds < convertTime(strHighscores.get(4))) {
                                 // Sound effect for highscore
@@ -162,9 +166,26 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         infoTextView = findViewById(R.id.textInfo);
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        releaseMediaPlayers();
+    }
+
     public void playSound(int soundId) {
         if (mediaPlayer == null) {
             mediaPlayer = MediaPlayer.create(getApplicationContext(), soundId);
+            mediaPlayers.add(mediaPlayer);
             mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
                 @Override
                 public void onCompletion(MediaPlayer mp) {
@@ -175,13 +196,22 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
             mediaPlayer.start();
         } else {
             MediaPlayer extraMediaPlayer = MediaPlayer.create(getApplicationContext(), soundId);
+            mediaPlayers.add(extraMediaPlayer);
             extraMediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
                 @Override
                 public void onCompletion(MediaPlayer mp) {
+                    mediaPlayers.remove(mp);
                     mp.release();
                 }
             });
             extraMediaPlayer.start();
+        }
+    }
+
+    public void releaseMediaPlayers() {
+        for (MediaPlayer mp : mediaPlayers) {
+            mp.reset();
+            mp.release();
         }
     }
 
@@ -224,20 +254,28 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
             finish();
         } else if (id == R.id.pauseButton) {
             if (isPaused) {
-                isPaused = false;
-                timerIsRunning = true;
-                playSound(R.raw.game_resume);
-                pauseForeground.setVisibility(View.INVISIBLE);
-                pauseButton.setText("Pause");
-                startTimer();
+                resumeGame();
             } else {
-                isPaused = true;
-                playSound(R.raw.game_pause);
-                pauseForeground.setVisibility(View.VISIBLE);
-                pauseButton.setText("Resume");
-                stopTimer();
+                pauseGame();
             }
         }
+    }
+
+    public void pauseGame() {
+        isPaused = false;
+        timerIsRunning = true;
+        playSound(R.raw.game_resume);
+        pauseForeground.setVisibility(View.INVISIBLE);
+        pauseButton.setText("Pause");
+        startTimer();
+    }
+
+    public void resumeGame() {
+        isPaused = true;
+        playSound(R.raw.game_pause);
+        pauseForeground.setVisibility(View.VISIBLE);
+        pauseButton.setText("Resume");
+        stopTimer();
     }
 
     private void closeBothImagesAfterTwoSeconds() {
@@ -318,7 +356,6 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                mediaPlayer.release();
                 finish();
             }
         }, 4000);
