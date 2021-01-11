@@ -40,6 +40,7 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
     private int score;
     private int maxScore;
 
+    private boolean gameStarted;
     private boolean wrongImagePairIsStillOpen;
     private boolean flipping;
     private boolean processing;
@@ -82,9 +83,10 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onItemClick(View itemView, int position) {
                 // Start timer on first click
-                if (!timerIsRunning && !isPaused) {
+                if (!gameStarted) {
                     timerIsRunning = true;
                     isPaused = false;
+                    gameStarted = true;
                     pauseButton.setVisibility(View.VISIBLE);
                     startTimer();
                 }
@@ -166,6 +168,13 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         infoTextView = findViewById(R.id.textInfo);
     }
 
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (gameStarted) {
+            pauseGame();
+        }
+    }
 
     @Override
     protected void onDestroy() {
