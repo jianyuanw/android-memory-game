@@ -338,12 +338,12 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void winGameText() {
-        infoText = "Congrats, you have won!\nGoing back to main page...";
+        infoText = "Congrats, you have won!\nReturning to main...";
         infoTextView.setText(infoText);
     }
 
     private void highScoreText() {
-        infoText = "Congrats! It's a high score!\nGoing back to main page...";
+        infoText = "Congrats! It's a high score!\nReturning to main...";
         infoTextView.setText(infoText);
     }
 
