@@ -117,7 +117,6 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
                         if (score == maxScore) {
                             // Game ended
                             stopTimer();
-
                             //Save high scores
                             if (strHighscores.size() < 5 || timerSeconds < convertTime(strHighscores.get(4))) {
                                 // Sound effect for highscore
@@ -132,8 +131,6 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
                                 winGameText();
                             }
 
-                            // Releases MediaPlayer resource
-                            mediaPlayer.release();
                             returnToMainActivityAfterFourSeconds();
                         } else {
                             // Game not yet end
@@ -321,6 +318,7 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
+                mediaPlayer.release();
                 finish();
             }
         }, 4000);
