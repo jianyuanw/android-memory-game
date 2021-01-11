@@ -166,15 +166,6 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         infoTextView = findViewById(R.id.textInfo);
     }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-    }
 
     @Override
     protected void onDestroy() {
@@ -262,20 +253,20 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     public void pauseGame() {
+        isPaused = true;
+        playSound(R.raw.game_pause);
+        pauseForeground.setVisibility(View.VISIBLE);
+        pauseButton.setText("Resume");
+        stopTimer();
+    }
+
+    public void resumeGame() {
         isPaused = false;
         timerIsRunning = true;
         playSound(R.raw.game_resume);
         pauseForeground.setVisibility(View.INVISIBLE);
         pauseButton.setText("Pause");
         startTimer();
-    }
-
-    public void resumeGame() {
-        isPaused = true;
-        playSound(R.raw.game_pause);
-        pauseForeground.setVisibility(View.VISIBLE);
-        pauseButton.setText("Resume");
-        stopTimer();
     }
 
     private void closeBothImagesAfterTwoSeconds() {
