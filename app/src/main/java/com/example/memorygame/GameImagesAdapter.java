@@ -25,10 +25,6 @@ public class GameImagesAdapter extends RecyclerView.Adapter<GameImagesAdapter.Vi
         this.useGlide = useGlide;
     }
 
-    public GameImagesAdapter(boolean useGlide) {
-        this.useGlide = useGlide;
-    }
-
     public interface OnItemClickListener {
         void onItemClick(View itemView, int position);
     }
