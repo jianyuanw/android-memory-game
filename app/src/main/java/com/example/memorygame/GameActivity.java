@@ -331,6 +331,7 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         SharedPreferences sp = this.getSharedPreferences("HIGHSCORE", Activity.MODE_PRIVATE);
         SharedPreferences.Editor mEdit1 = sp.edit();
         if (highscoreList != null) {
+            Collections.sort(highscoreList, (o1, o2) -> convertTime(o1) - convertTime(o2));
             if (highscoreList.size() > 5) {
                 highscoreList.subList(5, highscoreList.size()).clear();
             }
