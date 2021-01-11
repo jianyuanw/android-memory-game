@@ -38,9 +38,11 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="70dp"
+        android:layout_marginBottom="20dp"
         android:text="@string/back_buttontext"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/pauseButton" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/gameRecyclerView"
@@ -59,7 +61,7 @@
         android:text="@string/game_welcome"
         android:textAlignment="center"
         android:textSize="24sp"
-        app:layout_constraintBottom_toTopOf="@+id/backButton"
+        app:layout_constraintBottom_toTopOf="@+id/pauseButton"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/gameRecyclerView" />
@@ -69,6 +71,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="70dp"
+        android:layout_marginBottom="20dp"
         android:text="@string/pause_buttontext"
         android:visibility="invisible"
         app:backgroundTint="@android:color/holo_orange_dark"
@@ -77,17 +80,17 @@
 
     <TextView
         android:id="@+id/pauseForeground"
-        android:layout_width="410dp"
-        android:layout_height="609dp"
-        android:layout_marginBottom="24dp"
+        android:layout_width="417dp"
+        android:layout_height="743dp"
         android:background="#BE000000"
         android:gravity="center"
         android:text="@string/paused_text"
         android:textColor="#FFFFFF"
         android:textSize="50sp"
         android:visibility="invisible"
-        app:layout_constraintBottom_toTopOf="@+id/backButton"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
