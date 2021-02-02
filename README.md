@@ -1,4 +1,4 @@
-# android-memory-game
+# Android Memory Game
 
 Developed in Android (Java) for a school project.
 
